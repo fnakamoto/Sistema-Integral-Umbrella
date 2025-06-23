@@ -15,7 +15,7 @@ class Lead(db.Model):
     data_criacao = db.Column(db.DateTime, default=datetime.utcnow)
     data_ultima_interacao = db.Column(db.DateTime, default=datetime.utcnow)
     observacoes = db.Column(db.Text, nullable=True)
-    status = db.Column(db.String(20), default='Ativo')  # Ativo, Convertido, Perdido
+    status = db.Column(db.String(20), default='Ativo')  # Ativo, Inativo, Convertido, Perdido
     
     def __repr__(self):
         return f'<Lead {self.nome}>'
@@ -65,6 +65,54 @@ class Interacao(db.Model):
             'automatico': self.automatico
         }
 
+class TemplateEmail(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    etapa = db.Column(db.String(50), nullable=False)
+    assunto = db.Column(db.String(200), nullable=False)
+    conteudo = db.Column(db.Text, nullable=False)
+    ativo = db.Column(db.Boolean, default=True)
+    data_criacao = db.Column(db.DateTime, default=datetime.utcnow)
+    data_atualizacao = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def __repr__(self):
+        return f'<TemplateEmail {self.etapa}>'
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'etapa': self.etapa,
+            'assunto': self.assunto,
+            'conteudo': self.conteudo,
+            'ativo': self.ativo,
+            'data_criacao': self.data_criacao.isoformat() if self.data_criacao else None,
+            'data_atualizacao': self.data_atualizacao.isoformat() if self.data_atualizacao else None
+        }
+
+class AgendamentoAutomacao(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    lead_id = db.Column(db.Integer, db.ForeignKey('lead.id'), nullable=False)
+    etapa = db.Column(db.String(50), nullable=False)
+    data_agendamento = db.Column(db.DateTime, nullable=False)
+    executado = db.Column(db.Boolean, default=False)
+    data_execucao = db.Column(db.DateTime, nullable=True)
+    data_criacao = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    lead = db.relationship('Lead', backref=db.backref('agendamentos', lazy=True))
+    
+    def __repr__(self):
+        return f'<AgendamentoAutomacao Lead {self.lead_id} - {self.etapa}>'
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'lead_id': self.lead_id,
+            'etapa': self.etapa,
+            'data_agendamento': self.data_agendamento.isoformat() if self.data_agendamento else None,
+            'executado': self.executado,
+            'data_execucao': self.data_execucao.isoformat() if self.data_execucao else None,
+            'data_criacao': self.data_criacao.isoformat() if self.data_criacao else None
+        }
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
@@ -79,6 +127,3 @@ class User(db.Model):
             'username': self.username,
             'email': self.email
         }
-
-
-

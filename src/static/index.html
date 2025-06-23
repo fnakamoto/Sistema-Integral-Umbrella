@@ -18,7 +18,7 @@
         }
         
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -89,6 +89,16 @@
             color: #333;
         }
         
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            color: white;
+        }
+        
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 0.9em;
+        }
+        
         .form-group {
             margin-bottom: 15px;
         }
@@ -121,12 +131,39 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
         
+        .leads-filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .filter-group label {
+            font-weight: 600;
+            color: #555;
+            font-size: 0.9em;
+        }
+        
+        .filter-group select {
+            padding: 8px;
+            border: 2px solid #e1e1e1;
+            border-radius: 6px;
+            font-size: 0.9em;
+        }
+        
         .lead-item {
             border-bottom: 1px solid #eee;
-            padding: 15px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            padding: 20px 0;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 20px;
+            align-items: start;
         }
         
         .lead-item:last-child {
@@ -135,17 +172,34 @@
         
         .lead-info h4 {
             color: #333;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
+            font-size: 1.2em;
         }
         
         .lead-info p {
             color: #666;
             font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+        
+        .lead-meta {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+            flex-wrap: wrap;
         }
         
         .lead-actions {
             display: flex;
+            flex-direction: column;
             gap: 10px;
+            min-width: 200px;
+        }
+        
+        .lead-controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
         }
         
         .status-badge {
@@ -158,6 +212,11 @@
         .status-ativo {
             background-color: #d4edda;
             color: #155724;
+        }
+        
+        .status-inativo {
+            background-color: #f8d7da;
+            color: #721c24;
         }
         
         .status-convertido {
@@ -183,12 +242,12 @@
         
         .modal-content {
             background-color: white;
-            margin: 5% auto;
+            margin: 2% auto;
             padding: 30px;
             border-radius: 10px;
             width: 90%;
-            max-width: 600px;
-            max-height: 80vh;
+            max-width: 800px;
+            max-height: 90vh;
             overflow-y: auto;
         }
         
@@ -232,6 +291,122 @@
         .hidden {
             display: none;
         }
+        
+        .lead-detail-tabs {
+            display: flex;
+            border-bottom: 2px solid #e1e1e1;
+            margin-bottom: 20px;
+        }
+        
+        .tab-button {
+            padding: 12px 24px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 1em;
+            color: #666;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .tab-button.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .interacao-item {
+            border: 1px solid #e1e1e1;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background: #f9f9f9;
+        }
+        
+        .interacao-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .interacao-tipo {
+            font-weight: 600;
+            color: #667eea;
+        }
+        
+        .interacao-data {
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        .template-editor {
+            margin-top: 20px;
+        }
+        
+        .template-list {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .template-item {
+            border: 1px solid #e1e1e1;
+            border-radius: 8px;
+            padding: 15px;
+            background: white;
+        }
+        
+        .template-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .template-etapa {
+            font-weight: 600;
+            color: #667eea;
+        }
+        
+        .agendamento-form {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .datetime-input {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .lead-item {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .lead-actions {
+                min-width: auto;
+            }
+            
+            .leads-filters {
+                flex-direction: column;
+            }
+            
+            .datetime-input {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
@@ -251,20 +426,50 @@
             </div>
             
             <div class="card">
-                <h3>👤 Novo Lead</h3>
+                <h3>👤 Gestão de Leads</h3>
                 <button class="btn" onclick="abrirModalNovoLead()">Adicionar Lead</button>
-                <button class="btn btn-secondary" onclick="carregarLeads()">Listar Leads</button>
+                <button class="btn btn-secondary" onclick="carregarLeads()">Atualizar Lista</button>
             </div>
             
             <div class="card">
                 <h3>🤖 Automação</h3>
                 <button class="btn" onclick="executarFollowupLote()">Follow-up em Lote</button>
                 <button class="btn btn-secondary" onclick="listarLeadsFollowup()">Leads para Follow-up</button>
+                <button class="btn btn-secondary" onclick="abrirModalTemplates()">Gerenciar Templates</button>
             </div>
         </div>
         
         <div class="leads-list">
             <h3>📋 Lista de Leads</h3>
+            
+            <div class="leads-filters">
+                <div class="filter-group">
+                    <label for="filtroStatus">Status:</label>
+                    <select id="filtroStatus" onchange="aplicarFiltros()">
+                        <option value="">Todos</option>
+                        <option value="Ativo">Ativo</option>
+                        <option value="Inativo">Inativo</option>
+                        <option value="Convertido">Convertido</option>
+                        <option value="Perdido">Perdido</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="filtroEtapa">Etapa:</label>
+                    <select id="filtroEtapa" onchange="aplicarFiltros()">
+                        <option value="">Todas</option>
+                        <option value="Primeiro contato">Primeiro contato</option>
+                        <option value="Apresentação comercial">Apresentação comercial</option>
+                        <option value="Viabilidade">Viabilidade</option>
+                        <option value="Proposta">Proposta</option>
+                        <option value="Negociação">Negociação</option>
+                        <option value="Cliente">Cliente</option>
+                        <option value="Follow-up">Follow-up</option>
+                        <option value="Negócio perdido">Negócio perdido</option>
+                    </select>
+                </div>
+            </div>
+            
             <div id="leadsList">
                 <!-- Lista de leads será carregada aqui -->
             </div>
@@ -330,8 +535,179 @@
         </div>
     </div>
     
+    <!-- Modal Editar Lead -->
+    <div id="modalEditarLead" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="fecharModal('modalEditarLead')">&times;</span>
+            <h2>Editar Lead</h2>
+            <form id="formEditarLead">
+                <input type="hidden" id="editLeadId" name="leadId">
+                <div class="form-group">
+                    <label for="editNome">Nome *</label>
+                    <input type="text" id="editNome" name="nome" required>
+                </div>
+                <div class="form-group">
+                    <label for="editEmail">E-mail *</label>
+                    <input type="email" id="editEmail" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="editTelefone">Telefone</label>
+                    <input type="text" id="editTelefone" name="telefone">
+                </div>
+                <div class="form-group">
+                    <label for="editEmpresa">Empresa</label>
+                    <input type="text" id="editEmpresa" name="empresa">
+                </div>
+                <div class="form-group">
+                    <label for="editCargo">Cargo</label>
+                    <input type="text" id="editCargo" name="cargo">
+                </div>
+                <div class="form-group">
+                    <label for="editFonte">Fonte</label>
+                    <select id="editFonte" name="fonte">
+                        <option value="">Selecione...</option>
+                        <option value="Site">Site</option>
+                        <option value="Indicação">Indicação</option>
+                        <option value="Redes Sociais">Redes Sociais</option>
+                        <option value="Evento">Evento</option>
+                        <option value="Outro">Outro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editEtapa">Etapa</label>
+                    <select id="editEtapa" name="etapa">
+                        <option value="Primeiro contato">Primeiro contato</option>
+                        <option value="Apresentação comercial">Apresentação comercial</option>
+                        <option value="Viabilidade">Viabilidade</option>
+                        <option value="Proposta">Proposta</option>
+                        <option value="Negociação">Negociação</option>
+                        <option value="Cliente">Cliente</option>
+                        <option value="Follow-up">Follow-up</option>
+                        <option value="Negócio perdido">Negócio perdido</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editStatus">Status</label>
+                    <select id="editStatus" name="status">
+                        <option value="Ativo">Ativo</option>
+                        <option value="Inativo">Inativo</option>
+                        <option value="Convertido">Convertido</option>
+                        <option value="Perdido">Perdido</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editObservacoes">Observações</label>
+                    <textarea id="editObservacoes" name="observacoes" rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn">Salvar Alterações</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal Detalhes do Lead -->
+    <div id="modalDetalhesLead" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="fecharModal('modalDetalhesLead')">&times;</span>
+            <h2 id="detalhesLeadNome">Detalhes do Lead</h2>
+            
+            <div class="lead-detail-tabs">
+                <button class="tab-button active" onclick="abrirTab('tabDados')">Dados</button>
+                <button class="tab-button" onclick="abrirTab('tabInteracoes')">Interações</button>
+                <button class="tab-button" onclick="abrirTab('tabAgendamentos')">Agendamentos</button>
+            </div>
+            
+            <div id="tabDados" class="tab-content active">
+                <div id="detalhesLeadInfo">
+                    <!-- Informações do lead serão carregadas aqui -->
+                </div>
+                
+                <div class="agendamento-form">
+                    <h4>Agendar Automação</h4>
+                    <form id="formAgendamento">
+                        <input type="hidden" id="agendamentoLeadId">
+                        <div class="form-group">
+                            <label for="agendamentoEtapa">Etapa da Automação</label>
+                            <select id="agendamentoEtapa" required>
+                                <option value="">Selecione...</option>
+                                <option value="Primeiro contato">Primeiro contato</option>
+                                <option value="Apresentação comercial">Apresentação comercial</option>
+                                <option value="Viabilidade">Viabilidade</option>
+                                <option value="Proposta">Proposta</option>
+                                <option value="Follow-up">Follow-up</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Data e Hora do Envio</label>
+                            <div class="datetime-input">
+                                <input type="date" id="agendamentoData" required>
+                                <input type="time" id="agendamentoHora" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn">Agendar Automação</button>
+                    </form>
+                </div>
+            </div>
+            
+            <div id="tabInteracoes" class="tab-content">
+                <div id="listaInteracoes">
+                    <!-- Lista de interações será carregada aqui -->
+                </div>
+            </div>
+            
+            <div id="tabAgendamentos" class="tab-content">
+                <div id="listaAgendamentos">
+                    <!-- Lista de agendamentos será carregada aqui -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Templates -->
+    <div id="modalTemplates" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="fecharModal('modalTemplates')">&times;</span>
+            <h2>Gerenciar Templates de E-mail</h2>
+            
+            <div class="template-editor">
+                <button class="btn" onclick="inicializarTemplates()">Inicializar Templates Padrão</button>
+                <button class="btn btn-secondary" onclick="carregarTemplates()">Atualizar Lista</button>
+                
+                <div id="listaTemplates" class="template-list">
+                    <!-- Lista de templates será carregada aqui -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Editar Template -->
+    <div id="modalEditarTemplate" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="fecharModal('modalEditarTemplate')">&times;</span>
+            <h2>Editar Template</h2>
+            <form id="formEditarTemplate">
+                <input type="hidden" id="editTemplateId">
+                <div class="form-group">
+                    <label for="editTemplateEtapa">Etapa</label>
+                    <input type="text" id="editTemplateEtapa" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="editTemplateAssunto">Assunto</label>
+                    <input type="text" id="editTemplateAssunto" required>
+                    <small>Use {nome}, {empresa}, {email} para variáveis dinâmicas</small>
+                </div>
+                <div class="form-group">
+                    <label for="editTemplateConteudo">Conteúdo</label>
+                    <textarea id="editTemplateConteudo" rows="10" required></textarea>
+                    <small>Use {nome}, {empresa}, {email} para variáveis dinâmicas</small>
+                </div>
+                <button type="submit" class="btn">Salvar Template</button>
+            </form>
+        </div>
+    </div>
+    
     <script>
         const API_BASE = '/api';
+        let currentLeadId = null;
         
         // Função para carregar pipeline
         async function carregarPipeline() {
@@ -358,40 +734,165 @@
             }
         }
         
+        // Função para aplicar filtros
+        async function aplicarFiltros() {
+            const status = document.getElementById('filtroStatus').value;
+            const etapa = document.getElementById('filtroEtapa').value;
+            
+            let url = `${API_BASE}/leads?`;
+            if (status) url += `status=${encodeURIComponent(status)}&`;
+            if (etapa) url += `etapa=${encodeURIComponent(etapa)}&`;
+            
+            try {
+                const response = await fetch(url);
+                const leads = await response.json();
+                renderizarLeads(leads);
+            } catch (error) {
+                console.error('Erro ao aplicar filtros:', error);
+                alert('Erro ao aplicar filtros');
+            }
+        }
+        
         // Função para carregar leads
         async function carregarLeads() {
             try {
                 const response = await fetch(`${API_BASE}/leads`);
                 const leads = await response.json();
-                
-                const leadsList = document.getElementById('leadsList');
-                leadsList.innerHTML = '';
-                
-                if (leads.length === 0) {
-                    leadsList.innerHTML = '<p>Nenhum lead encontrado.</p>';
-                    return;
-                }
-                
-                leads.forEach(lead => {
-                    const leadItem = document.createElement('div');
-                    leadItem.className = 'lead-item';
-                    leadItem.innerHTML = `
-                        <div class="lead-info">
-                            <h4>${lead.nome}</h4>
-                            <p>${lead.email} | ${lead.empresa || 'Empresa não informada'}</p>
-                            <p>Etapa: ${lead.etapa} | <span class="status-badge status-${lead.status.toLowerCase()}">${lead.status}</span></p>
-                        </div>
-                        <div class="lead-actions">
-                            <button class="btn" onclick="enviarFollowup(${lead.id})">Follow-up</button>
-                            <button class="btn btn-secondary" onclick="editarLead(${lead.id})">Editar</button>
-                        </div>
-                    `;
-                    leadsList.appendChild(leadItem);
-                });
-                
+                renderizarLeads(leads);
             } catch (error) {
                 console.error('Erro ao carregar leads:', error);
                 alert('Erro ao carregar leads');
+            }
+        }
+        
+        // Função para renderizar leads
+        function renderizarLeads(leads) {
+            const leadsList = document.getElementById('leadsList');
+            leadsList.innerHTML = '';
+            
+            if (leads.length === 0) {
+                leadsList.innerHTML = '<p>Nenhum lead encontrado.</p>';
+                return;
+            }
+            
+            leads.forEach(lead => {
+                const leadItem = document.createElement('div');
+                leadItem.className = 'lead-item';
+                leadItem.innerHTML = `
+                    <div class="lead-info">
+                        <h4>${lead.nome}</h4>
+                        <p><strong>Email:</strong> ${lead.email}</p>
+                        <p><strong>Empresa:</strong> ${lead.empresa || 'Não informada'}</p>
+                        <p><strong>Telefone:</strong> ${lead.telefone || 'Não informado'}</p>
+                        <div class="lead-meta">
+                            <span class="status-badge status-${lead.status.toLowerCase()}">${lead.status}</span>
+                            <span><strong>Etapa:</strong> ${lead.etapa}</span>
+                            <span><strong>Fonte:</strong> ${lead.fonte || 'Não informada'}</span>
+                        </div>
+                        ${lead.observacoes ? `<p><strong>Observações:</strong> ${lead.observacoes}</p>` : ''}
+                    </div>
+                    <div class="lead-actions">
+                        <div class="form-group">
+                            <label>Status:</label>
+                            <select onchange="alterarStatus(${lead.id}, this.value)" value="${lead.status}">
+                                <option value="Ativo" ${lead.status === 'Ativo' ? 'selected' : ''}>Ativo</option>
+                                <option value="Inativo" ${lead.status === 'Inativo' ? 'selected' : ''}>Inativo</option>
+                                <option value="Convertido" ${lead.status === 'Convertido' ? 'selected' : ''}>Convertido</option>
+                                <option value="Perdido" ${lead.status === 'Perdido' ? 'selected' : ''}>Perdido</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Etapa:</label>
+                            <select onchange="alterarEtapa(${lead.id}, this.value)" value="${lead.etapa}">
+                                <option value="Primeiro contato" ${lead.etapa === 'Primeiro contato' ? 'selected' : ''}>Primeiro contato</option>
+                                <option value="Apresentação comercial" ${lead.etapa === 'Apresentação comercial' ? 'selected' : ''}>Apresentação comercial</option>
+                                <option value="Viabilidade" ${lead.etapa === 'Viabilidade' ? 'selected' : ''}>Viabilidade</option>
+                                <option value="Proposta" ${lead.etapa === 'Proposta' ? 'selected' : ''}>Proposta</option>
+                                <option value="Negociação" ${lead.etapa === 'Negociação' ? 'selected' : ''}>Negociação</option>
+                                <option value="Cliente" ${lead.etapa === 'Cliente' ? 'selected' : ''}>Cliente</option>
+                                <option value="Follow-up" ${lead.etapa === 'Follow-up' ? 'selected' : ''}>Follow-up</option>
+                                <option value="Negócio perdido" ${lead.etapa === 'Negócio perdido' ? 'selected' : ''}>Negócio perdido</option>
+                            </select>
+                        </div>
+                        <div class="lead-controls">
+                            <button class="btn btn-small" onclick="abrirDetalhesLead(${lead.id})">Detalhes</button>
+                            <button class="btn btn-small" onclick="enviarFollowup(${lead.id})">Follow-up</button>
+                            <button class="btn btn-secondary btn-small" onclick="editarLead(${lead.id})">Editar</button>
+                            <button class="btn btn-danger btn-small" onclick="excluirLead(${lead.id})">Excluir</button>
+                        </div>
+                    </div>
+                `;
+                leadsList.appendChild(leadItem);
+            });
+        }
+        
+        // Função para alterar status
+        async function alterarStatus(leadId, novoStatus) {
+            try {
+                const response = await fetch(`${API_BASE}/leads/${leadId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ status: novoStatus })
+                });
+                
+                if (response.ok) {
+                    carregarLeads();
+                    carregarPipeline();
+                } else {
+                    alert('Erro ao alterar status');
+                }
+            } catch (error) {
+                console.error('Erro ao alterar status:', error);
+                alert('Erro ao alterar status');
+            }
+        }
+        
+        // Função para alterar etapa
+        async function alterarEtapa(leadId, novaEtapa) {
+            try {
+                const response = await fetch(`${API_BASE}/leads/${leadId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ etapa: novaEtapa })
+                });
+                
+                if (response.ok) {
+                    carregarLeads();
+                    carregarPipeline();
+                } else {
+                    alert('Erro ao alterar etapa');
+                }
+            } catch (error) {
+                console.error('Erro ao alterar etapa:', error);
+                alert('Erro ao alterar etapa');
+            }
+        }
+        
+        // Função para excluir lead
+        async function excluirLead(leadId) {
+            if (!confirm('Tem certeza que deseja excluir este lead permanentemente? Esta ação não pode ser desfeita.')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/leads/${leadId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    alert('Lead excluído com sucesso!');
+                    carregarLeads();
+                    carregarPipeline();
+                } else {
+                    alert('Erro ao excluir lead');
+                }
+            } catch (error) {
+                console.error('Erro ao excluir lead:', error);
+                alert('Erro ao excluir lead');
             }
         }
         
@@ -405,7 +906,249 @@
             document.getElementById(modalId).style.display = 'none';
         }
         
-        // Função para salvar novo lead
+        // Função para abrir tabs
+        function abrirTab(tabId) {
+            // Remover classe active de todos os botões e conteúdos
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // Adicionar classe active ao botão e conteúdo selecionados
+            event.target.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+        
+        // Função para abrir detalhes do lead
+        async function abrirDetalhesLead(leadId) {
+            currentLeadId = leadId;
+            
+            try {
+                const response = await fetch(`${API_BASE}/leads/${leadId}`);
+                const lead = await response.json();
+                
+                document.getElementById('detalhesLeadNome').textContent = `Detalhes - ${lead.nome}`;
+                document.getElementById('agendamentoLeadId').value = leadId;
+                
+                const detalhesInfo = document.getElementById('detalhesLeadInfo');
+                detalhesInfo.innerHTML = `
+                    <div class="form-group">
+                        <strong>Nome:</strong> ${lead.nome}
+                    </div>
+                    <div class="form-group">
+                        <strong>Email:</strong> ${lead.email}
+                    </div>
+                    <div class="form-group">
+                        <strong>Telefone:</strong> ${lead.telefone || 'Não informado'}
+                    </div>
+                    <div class="form-group">
+                        <strong>Empresa:</strong> ${lead.empresa || 'Não informada'}
+                    </div>
+                    <div class="form-group">
+                        <strong>Cargo:</strong> ${lead.cargo || 'Não informado'}
+                    </div>
+                    <div class="form-group">
+                        <strong>Fonte:</strong> ${lead.fonte || 'Não informada'}
+                    </div>
+                    <div class="form-group">
+                        <strong>Etapa:</strong> ${lead.etapa}
+                    </div>
+                    <div class="form-group">
+                        <strong>Status:</strong> <span class="status-badge status-${lead.status.toLowerCase()}">${lead.status}</span>
+                    </div>
+                    <div class="form-group">
+                        <strong>Observações:</strong> ${lead.observacoes || 'Nenhuma observação'}
+                    </div>
+                `;
+                
+                // Carregar interações
+                carregarInteracoes(leadId);
+                
+                // Carregar agendamentos
+                carregarAgendamentos(leadId);
+                
+                document.getElementById('modalDetalhesLead').style.display = 'block';
+                
+            } catch (error) {
+                console.error('Erro ao carregar detalhes do lead:', error);
+                alert('Erro ao carregar detalhes do lead');
+            }
+        }
+        
+        // Função para carregar interações
+        async function carregarInteracoes(leadId) {
+            try {
+                const response = await fetch(`${API_BASE}/leads/${leadId}/interacoes`);
+                const interacoes = await response.json();
+                
+                const listaInteracoes = document.getElementById('listaInteracoes');
+                listaInteracoes.innerHTML = '';
+                
+                if (interacoes.length === 0) {
+                    listaInteracoes.innerHTML = '<p>Nenhuma interação registrada.</p>';
+                    return;
+                }
+                
+                interacoes.forEach(interacao => {
+                    const interacaoItem = document.createElement('div');
+                    interacaoItem.className = 'interacao-item';
+                    interacaoItem.innerHTML = `
+                        <div class="interacao-header">
+                            <span class="interacao-tipo">${interacao.tipo.toUpperCase()}</span>
+                            <span class="interacao-data">${new Date(interacao.data_envio).toLocaleString('pt-BR')}</span>
+                        </div>
+                        <div><strong>Assunto:</strong> ${interacao.assunto || 'Sem assunto'}</div>
+                        <div><strong>Status:</strong> ${interacao.status}</div>
+                        <div><strong>Automático:</strong> ${interacao.automatico ? 'Sim' : 'Não'}</div>
+                        ${interacao.conteudo ? `<div><strong>Conteúdo:</strong> ${interacao.conteudo.substring(0, 200)}...</div>` : ''}
+                    `;
+                    listaInteracoes.appendChild(interacaoItem);
+                });
+                
+            } catch (error) {
+                console.error('Erro ao carregar interações:', error);
+            }
+        }
+        
+        // Função para carregar agendamentos
+        async function carregarAgendamentos(leadId) {
+            try {
+                const response = await fetch(`${API_BASE}/leads/${leadId}/agendamentos`);
+                const agendamentos = await response.json();
+                
+                const listaAgendamentos = document.getElementById('listaAgendamentos');
+                listaAgendamentos.innerHTML = '';
+                
+                if (agendamentos.length === 0) {
+                    listaAgendamentos.innerHTML = '<p>Nenhum agendamento registrado.</p>';
+                    return;
+                }
+                
+                agendamentos.forEach(agendamento => {
+                    const agendamentoItem = document.createElement('div');
+                    agendamentoItem.className = 'interacao-item';
+                    agendamentoItem.innerHTML = `
+                        <div class="interacao-header">
+                            <span class="interacao-tipo">${agendamento.etapa}</span>
+                            <span class="interacao-data">${new Date(agendamento.data_agendamento).toLocaleString('pt-BR')}</span>
+                        </div>
+                        <div><strong>Status:</strong> ${agendamento.executado ? 'Executado' : 'Pendente'}</div>
+                        ${agendamento.data_execucao ? `<div><strong>Executado em:</strong> ${new Date(agendamento.data_execucao).toLocaleString('pt-BR')}</div>` : ''}
+                    `;
+                    listaAgendamentos.appendChild(agendamentoItem);
+                });
+                
+            } catch (error) {
+                console.error('Erro ao carregar agendamentos:', error);
+            }
+        }
+        
+        // Função para editar lead
+        async function editarLead(leadId) {
+            try {
+                const response = await fetch(`${API_BASE}/leads/${leadId}`);
+                const lead = await response.json();
+                
+                document.getElementById('editLeadId').value = leadId;
+                document.getElementById('editNome').value = lead.nome;
+                document.getElementById('editEmail').value = lead.email;
+                document.getElementById('editTelefone').value = lead.telefone || '';
+                document.getElementById('editEmpresa').value = lead.empresa || '';
+                document.getElementById('editCargo').value = lead.cargo || '';
+                document.getElementById('editFonte').value = lead.fonte || '';
+                document.getElementById('editEtapa').value = lead.etapa;
+                document.getElementById('editStatus').value = lead.status;
+                document.getElementById('editObservacoes').value = lead.observacoes || '';
+                
+                document.getElementById('modalEditarLead').style.display = 'block';
+                
+            } catch (error) {
+                console.error('Erro ao carregar dados do lead:', error);
+                alert('Erro ao carregar dados do lead');
+            }
+        }
+        
+        // Função para carregar templates
+        async function carregarTemplates() {
+            try {
+                const response = await fetch(`${API_BASE}/templates`);
+                const templates = await response.json();
+                
+                const listaTemplates = document.getElementById('listaTemplates');
+                listaTemplates.innerHTML = '';
+                
+                if (templates.length === 0) {
+                    listaTemplates.innerHTML = '<p>Nenhum template encontrado. Clique em "Inicializar Templates Padrão" para criar os templates básicos.</p>';
+                    return;
+                }
+                
+                templates.forEach(template => {
+                    const templateItem = document.createElement('div');
+                    templateItem.className = 'template-item';
+                    templateItem.innerHTML = `
+                        <div class="template-header">
+                            <span class="template-etapa">${template.etapa}</span>
+                            <button class="btn btn-small" onclick="editarTemplate(${template.id})">Editar</button>
+                        </div>
+                        <div><strong>Assunto:</strong> ${template.assunto}</div>
+                        <div><strong>Última atualização:</strong> ${new Date(template.data_atualizacao).toLocaleString('pt-BR')}</div>
+                    `;
+                    listaTemplates.appendChild(templateItem);
+                });
+                
+            } catch (error) {
+                console.error('Erro ao carregar templates:', error);
+                alert('Erro ao carregar templates');
+            }
+        }
+        
+        // Função para editar template
+        async function editarTemplate(templateId) {
+            try {
+                const response = await fetch(`${API_BASE}/templates`);
+                const templates = await response.json();
+                const template = templates.find(t => t.id === templateId);
+                
+                if (!template) {
+                    alert('Template não encontrado');
+                    return;
+                }
+                
+                document.getElementById('editTemplateId').value = templateId;
+                document.getElementById('editTemplateEtapa').value = template.etapa;
+                document.getElementById('editTemplateAssunto').value = template.assunto;
+                document.getElementById('editTemplateConteudo').value = template.conteudo;
+                
+                document.getElementById('modalEditarTemplate').style.display = 'block';
+                
+            } catch (error) {
+                console.error('Erro ao carregar template:', error);
+                alert('Erro ao carregar template');
+            }
+        }
+        
+        // Função para inicializar templates
+        async function inicializarTemplates() {
+            try {
+                const response = await fetch(`${API_BASE}/automation/inicializar-templates`, {
+                    method: 'POST'
+                });
+                
+                const result = await response.json();
+                alert(result.message);
+                carregarTemplates();
+                
+            } catch (error) {
+                console.error('Erro ao inicializar templates:', error);
+                alert('Erro ao inicializar templates');
+            }
+        }
+        
+        // Função para abrir modal de templates
+        function abrirModalTemplates() {
+            carregarTemplates();
+            document.getElementById('modalTemplates').style.display = 'block';
+        }
+        
+        // Event listeners para formulários
         document.getElementById('formNovoLead').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -437,6 +1180,107 @@
             }
         });
         
+        document.getElementById('formEditarLead').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const leadData = Object.fromEntries(formData.entries());
+            const leadId = leadData.leadId;
+            delete leadData.leadId;
+            
+            try {
+                const response = await fetch(`${API_BASE}/leads/${leadId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(leadData)
+                });
+                
+                if (response.ok) {
+                    alert('Lead atualizado com sucesso!');
+                    fecharModal('modalEditarLead');
+                    carregarLeads();
+                    carregarPipeline();
+                } else {
+                    const error = await response.json();
+                    alert('Erro ao atualizar lead: ' + error.error);
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar lead:', error);
+                alert('Erro ao atualizar lead');
+            }
+        });
+        
+        document.getElementById('formAgendamento').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const leadId = document.getElementById('agendamentoLeadId').value;
+            const etapa = document.getElementById('agendamentoEtapa').value;
+            const data = document.getElementById('agendamentoData').value;
+            const hora = document.getElementById('agendamentoHora').value;
+            
+            const dataAgendamento = new Date(`${data}T${hora}`).toISOString();
+            
+            try {
+                const response = await fetch(`${API_BASE}/leads/${leadId}/agendamentos`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        etapa: etapa,
+                        data_agendamento: dataAgendamento
+                    })
+                });
+                
+                if (response.ok) {
+                    alert('Automação agendada com sucesso!');
+                    e.target.reset();
+                    carregarAgendamentos(leadId);
+                } else {
+                    const error = await response.json();
+                    alert('Erro ao agendar automação: ' + error.error);
+                }
+            } catch (error) {
+                console.error('Erro ao agendar automação:', error);
+                alert('Erro ao agendar automação');
+            }
+        });
+        
+        document.getElementById('formEditarTemplate').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const templateId = document.getElementById('editTemplateId').value;
+            const assunto = document.getElementById('editTemplateAssunto').value;
+            const conteudo = document.getElementById('editTemplateConteudo').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/templates/${templateId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        assunto: assunto,
+                        conteudo: conteudo
+                    })
+                });
+                
+                if (response.ok) {
+                    alert('Template atualizado com sucesso!');
+                    fecharModal('modalEditarTemplate');
+                    carregarTemplates();
+                } else {
+                    const error = await response.json();
+                    alert('Erro ao atualizar template: ' + error.error);
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar template:', error);
+                alert('Erro ao atualizar template');
+            }
+        });
+        
         // Função para enviar follow-up
         async function enviarFollowup(leadId) {
             try {
@@ -447,6 +1291,9 @@
                 if (response.ok) {
                     alert('Follow-up enviado com sucesso!');
                     carregarLeads();
+                    if (currentLeadId === leadId) {
+                        carregarInteracoes(leadId);
+                    }
                 } else {
                     const error = await response.json();
                     alert('Erro ao enviar follow-up: ' + error.error);
@@ -501,11 +1348,6 @@
             }
         }
         
-        // Função placeholder para editar lead
-        function editarLead(leadId) {
-            alert(`Funcionalidade de edição será implementada para o lead ${leadId}`);
-        }
-        
         // Carregar dados iniciais
         document.addEventListener('DOMContentLoaded', function() {
             carregarPipeline();
@@ -524,4 +1366,3 @@
     </script>
 </body>
 </html>
-
