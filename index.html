@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Umbrella Leads Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            color: #333;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e1e1e1;
+            border-radius: 6px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .leads-list {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .lead-item {
+            border-bottom: 1px solid #eee;
+            padding: 15px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .lead-item:last-child {
+            border-bottom: none;
+        }
+        
+        .lead-info h4 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .lead-info p {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .lead-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+        
+        .status-ativo {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status-convertido {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .status-perdido {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: #000;
+        }
+        
+        .pipeline-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .pipeline-item {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .pipeline-item h4 {
+            color: #667eea;
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+        
+        .pipeline-item p {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏢 Umbrella Leads Manager</h1>
+            <p>Sistema de Gestão de Leads com Automação de Follow-ups</p>
+        </div>
+        
+        <div class="dashboard">
+            <div class="card">
+                <h3>📊 Pipeline de Vendas</h3>
+                <div id="pipelineStats" class="pipeline-stats">
+                    <!-- Estatísticas serão carregadas aqui -->
+                </div>
+                <button class="btn" onclick="carregarPipeline()">Atualizar Pipeline</button>
+            </div>
+            
+            <div class="card">
+                <h3>👤 Novo Lead</h3>
+                <button class="btn" onclick="abrirModalNovoLead()">Adicionar Lead</button>
+                <button class="btn btn-secondary" onclick="carregarLeads()">Listar Leads</button>
+            </div>
+            
+            <div class="card">
+                <h3>🤖 Automação</h3>
+                <button class="btn" onclick="executarFollowupLote()">Follow-up em Lote</button>
+                <button class="btn btn-secondary" onclick="listarLeadsFollowup()">Leads para Follow-up</button>
+            </div>
+        </div>
+        
+        <div class="leads-list">
+            <h3>📋 Lista de Leads</h3>
+            <div id="leadsList">
+                <!-- Lista de leads será carregada aqui -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Novo Lead -->
+    <div id="modalNovoLead" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="fecharModal('modalNovoLead')">&times;</span>
+            <h2>Novo Lead</h2>
+            <form id="formNovoLead">
+                <div class="form-group">
+                    <label for="nome">Nome *</label>
+                    <input type="text" id="nome" name="nome" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">E-mail *</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="telefone">Telefone</label>
+                    <input type="text" id="telefone" name="telefone">
+                </div>
+                <div class="form-group">
+                    <label for="empresa">Empresa</label>
+                    <input type="text" id="empresa" name="empresa">
+                </div>
+                <div class="form-group">
+                    <label for="cargo">Cargo</label>
+                    <input type="text" id="cargo" name="cargo">
+                </div>
+                <div class="form-group">
+                    <label for="fonte">Fonte</label>
+                    <select id="fonte" name="fonte">
+                        <option value="">Selecione...</option>
+                        <option value="Site">Site</option>
+                        <option value="Indicação">Indicação</option>
+                        <option value="Redes Sociais">Redes Sociais</option>
+                        <option value="Evento">Evento</option>
+                        <option value="Outro">Outro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="etapa">Etapa</label>
+                    <select id="etapa" name="etapa">
+                        <option value="Primeiro contato">Primeiro contato</option>
+                        <option value="Apresentação comercial">Apresentação comercial</option>
+                        <option value="Viabilidade">Viabilidade</option>
+                        <option value="Proposta">Proposta</option>
+                        <option value="Negociação">Negociação</option>
+                        <option value="Cliente">Cliente</option>
+                        <option value="Follow-up">Follow-up</option>
+                        <option value="Negócio perdido">Negócio perdido</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="observacoes">Observações</label>
+                    <textarea id="observacoes" name="observacoes" rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn">Salvar Lead</button>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = '/api';
+        
+        // Função para carregar pipeline
+        async function carregarPipeline() {
+            try {
+                const response = await fetch(`${API_BASE}/pipeline`);
+                const data = await response.json();
+                
+                const pipelineStats = document.getElementById('pipelineStats');
+                pipelineStats.innerHTML = '';
+                
+                Object.entries(data.pipeline).forEach(([etapa, count]) => {
+                    const item = document.createElement('div');
+                    item.className = 'pipeline-item';
+                    item.innerHTML = `
+                        <h4>${count}</h4>
+                        <p>${etapa}</p>
+                    `;
+                    pipelineStats.appendChild(item);
+                });
+                
+            } catch (error) {
+                console.error('Erro ao carregar pipeline:', error);
+                alert('Erro ao carregar pipeline');
+            }
+        }
+        
+        // Função para carregar leads
+        async function carregarLeads() {
+            try {
+                const response = await fetch(`${API_BASE}/leads`);
+                const leads = await response.json();
+                
+                const leadsList = document.getElementById('leadsList');
+                leadsList.innerHTML = '';
+                
+                if (leads.length === 0) {
+                    leadsList.innerHTML = '<p>Nenhum lead encontrado.</p>';
+                    return;
+                }
+                
+                leads.forEach(lead => {
+                    const leadItem = document.createElement('div');
+                    leadItem.className = 'lead-item';
+                    leadItem.innerHTML = `
+                        <div class="lead-info">
+                            <h4>${lead.nome}</h4>
+                            <p>${lead.email} | ${lead.empresa || 'Empresa não informada'}</p>
+                            <p>Etapa: ${lead.etapa} | <span class="status-badge status-${lead.status.toLowerCase()}">${lead.status}</span></p>
+                        </div>
+                        <div class="lead-actions">
+                            <button class="btn" onclick="enviarFollowup(${lead.id})">Follow-up</button>
+                            <button class="btn btn-secondary" onclick="editarLead(${lead.id})">Editar</button>
+                        </div>
+                    `;
+                    leadsList.appendChild(leadItem);
+                });
+                
+            } catch (error) {
+                console.error('Erro ao carregar leads:', error);
+                alert('Erro ao carregar leads');
+            }
+        }
+        
+        // Função para abrir modal de novo lead
+        function abrirModalNovoLead() {
+            document.getElementById('modalNovoLead').style.display = 'block';
+        }
+        
+        // Função para fechar modal
+        function fecharModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        // Função para salvar novo lead
+        document.getElementById('formNovoLead').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const leadData = Object.fromEntries(formData.entries());
+            
+            try {
+                const response = await fetch(`${API_BASE}/leads`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(leadData)
+                });
+                
+                if (response.ok) {
+                    alert('Lead criado com sucesso!');
+                    fecharModal('modalNovoLead');
+                    e.target.reset();
+                    carregarLeads();
+                    carregarPipeline();
+                } else {
+                    const error = await response.json();
+                    alert('Erro ao criar lead: ' + error.error);
+                }
+            } catch (error) {
+                console.error('Erro ao criar lead:', error);
+                alert('Erro ao criar lead');
+            }
+        });
+        
+        // Função para enviar follow-up
+        async function enviarFollowup(leadId) {
+            try {
+                const response = await fetch(`${API_BASE}/automation/trigger-followup/${leadId}`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    alert('Follow-up enviado com sucesso!');
+                    carregarLeads();
+                } else {
+                    const error = await response.json();
+                    alert('Erro ao enviar follow-up: ' + error.error);
+                }
+            } catch (error) {
+                console.error('Erro ao enviar follow-up:', error);
+                alert('Erro ao enviar follow-up');
+            }
+        }
+        
+        // Função para executar follow-up em lote
+        async function executarFollowupLote() {
+            if (!confirm('Deseja executar follow-up em lote para todos os leads elegíveis?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/automation/batch-followup`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ dias: 3 })
+                });
+                
+                const result = await response.json();
+                alert(`Follow-up em lote executado! ${result.total_processados} leads processados.`);
+                carregarLeads();
+                
+            } catch (error) {
+                console.error('Erro ao executar follow-up em lote:', error);
+                alert('Erro ao executar follow-up em lote');
+            }
+        }
+        
+        // Função para listar leads que precisam de follow-up
+        async function listarLeadsFollowup() {
+            try {
+                const response = await fetch(`${API_BASE}/automation/leads-for-followup?dias=3`);
+                const leads = await response.json();
+                
+                if (leads.length === 0) {
+                    alert('Nenhum lead precisa de follow-up no momento.');
+                } else {
+                    const nomes = leads.map(lead => lead.nome).join(', ');
+                    alert(`${leads.length} leads precisam de follow-up: ${nomes}`);
+                }
+                
+            } catch (error) {
+                console.error('Erro ao listar leads para follow-up:', error);
+                alert('Erro ao listar leads para follow-up');
+            }
+        }
+        
+        // Função placeholder para editar lead
+        function editarLead(leadId) {
+            alert(`Funcionalidade de edição será implementada para o lead ${leadId}`);
+        }
+        
+        // Carregar dados iniciais
+        document.addEventListener('DOMContentLoaded', function() {
+            carregarPipeline();
+            carregarLeads();
+        });
+        
+        // Fechar modal ao clicar fora
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>
+
