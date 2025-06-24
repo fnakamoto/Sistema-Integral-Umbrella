@@ -54,6 +54,7 @@ FLASK_ENV=production
 git clone <url-do-repositorio>
 cd umbrella_leads_manager
 
+# Para desenvolvimento local com virtual environment:
 # Crie e ative o ambiente virtual
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
@@ -64,6 +65,12 @@ venv\Scripts\activate  # Windows
 python -m pip install -r requirements.txt
 
 # Execute a aplicação
+python src/main.py
+```
+
+### Desenvolvimento no WebContainer
+```bash
+# No ambiente WebContainer, execute diretamente:
 python src/main.py
 ```
 
