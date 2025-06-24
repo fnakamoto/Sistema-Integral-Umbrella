@@ -61,7 +61,7 @@ source venv/bin/activate  # Linux/Mac
 venv\Scripts\activate  # Windows
 
 # Instale as dependências
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 
 # Execute a aplicação
 python src/main.py
@@ -115,4 +115,3 @@ Para dúvidas ou suporte, entre em contato com a equipe de desenvolvimento.
 ## Licença
 
 Este projeto foi desenvolvido especificamente para a Umbrella Marcas & Patentes.
-
