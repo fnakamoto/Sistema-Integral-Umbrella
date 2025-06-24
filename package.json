@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "Python Flask application wrapper",
   "scripts": {
-    "dev": "python src/main.py",
-    "start": "python src/main.py",
+    "dev": "source venv/bin/activate && python src/main.py",
+    "start": "source venv/bin/activate && python src/main.py",
     "build": "echo 'This is a Python Flask application. No build step required.'"
   },
   "keywords": ["python", "flask"],
