@@ -114,17 +114,30 @@ def get_template_by_etapa(etapa):
 
 @automation_bp.route('/automation/trigger-followup/<int:lead_id>', methods=['POST'])
 def trigger_followup(lead_id):
-    """Dispara follow-up automático baseado na etapa do lead"""
+    """
+    Dispara follow-up. Pode usar um template_id específico ou o template da etapa do lead.
+    """
     lead = Lead.query.get_or_404(lead_id)
+    data = request.get_json()
+    template_id = data.get('template_id') if data else None # Pega o template_id do corpo da requisição
+
+    template_db = None
+    if template_id:
+        template_db = TemplateEmail.query.get(template_id)
+        if not template_db:
+            return jsonify({'error': 'Template especificado não encontrado'}), 404
+    else:
+        # Se nenhum template_id for fornecido, busca o template personalizado para a etapa
+        template_db = TemplateEmail.query.filter_by(etapa=lead.etapa, ativo=True).first()
     
-    # Buscar template personalizado para a etapa
-    template_db = TemplateEmail.query.filter_by(etapa=lead.etapa, ativo=True).first()
-    
+    assunto = None
+    conteudo = None
+
     if template_db:
         assunto = substituir_variaveis(template_db.assunto, lead)
         conteudo = substituir_variaveis(template_db.conteudo, lead)
     else:
-        # Templates padrão caso não existam personalizados
+        # Templates padrão caso não existam personalizados ou template_id inválido
         templates_padrao = {
             'Primeiro contato': {
                 'assunto': 'Bem-vindo à Umbrella Marcas, {nome}!',
@@ -167,7 +180,7 @@ def trigger_followup(lead_id):
         
         template_padrao = templates_padrao.get(lead.etapa)
         if not template_padrao:
-            return jsonify({'error': 'Template não encontrado para esta etapa'}), 400
+            return jsonify({'error': 'Template não encontrado para esta etapa e nenhum template_id válido fornecido'}), 400
         
         assunto = substituir_variaveis(template_padrao['assunto'], lead)
         conteudo = substituir_variaveis(template_padrao['conteudo'], lead)
@@ -337,13 +350,13 @@ def inicializar_templates():
                 <h2>Olá {nome}!</h2>
                 <p>Muito obrigado pelo seu interesse nos serviços da Umbrella Marcas & Patentes.</p>
                 <p>Somos especialistas em registro de marcas e propriedade intelectual, e nosso propósito é proteger o seu sonho!</p>
-                <p>Em breve, um de nossos especialistas entrará em contato para apresentar nossas soluções personalizadas para {empresa}.</p>
+                <p>Em breve, um de nossos especialistas entrará em contato para apresentar nossas soluções personalizadas para você.</p>
                 <p>Enquanto isso, fique à vontade para conhecer mais sobre nossos serviços.</p>
                 <br>
                 <p>Atenciosamente,<br>
                 Equipe Umbrella Marcas & Patentes</p>
                 <p>WhatsApp: (43) 9.9978-6664<br>
-                Email: contato@umbrellamarcas.com.br</p>
+                Email: euquero@umbrellamarcas.com.br</p>
             </body>
             </html>
             '''
@@ -357,12 +370,12 @@ def inicializar_templates():
                 <h2>Olá {nome}!</h2>
                 <p>Esperamos que tenha tido a oportunidade de revisar nossa apresentação comercial.</p>
                 <p>Caso tenha alguma dúvida ou precise de esclarecimentos adicionais, estamos à disposição!</p>
-                <p>Nossos especialistas podem agendar uma conversa para discutir como podemos ajudar {empresa} a proteger sua marca.</p>
+                <p>Nossos especialistas podem agendar uma conversa para discutir como podemos ajudar a proteger sua marca.</p>
                 <br>
                 <p>Atenciosamente,<br>
                 Equipe Umbrella Marcas & Patentes</p>
                 <p>WhatsApp: (43) 9.9978-6664<br>
-                Email: contato@umbrellamarcas.com.br</p>
+                Email: euquero@umbrellamarcas.com.br</p>
             </body>
             </html>
             '''
@@ -381,7 +394,7 @@ def inicializar_templates():
                 <p>Atenciosamente,<br>
                 Equipe Umbrella Marcas & Patentes</p>
                 <p>WhatsApp: (43) 9.9978-6664<br>
-                Email: contato@umbrellamarcas.com.br</p>
+                Email: euquero@umbrellamarcas.com.br</p>
             </body>
             </html>
             '''
@@ -400,7 +413,7 @@ def inicializar_templates():
                 <p>Atenciosamente,<br>
                 Equipe Umbrella Marcas & Patentes</p>
                 <p>WhatsApp: (43) 9.9978-6664<br>
-                Email: contato@umbrellamarcas.com.br</p>
+                Email: euquero@umbrellamarcas.com.br</p>
             </body>
             </html>
             '''
@@ -414,13 +427,13 @@ def inicializar_templates():
                 <h2>Olá {nome}!</h2>
                 <p>Notamos que faz um tempo que não conversamos sobre o registro de sua marca.</p>
                 <p>Sabemos que às vezes os projetos ficam em standby, mas queremos lembrar que estamos aqui quando você estiver pronto.</p>
-                <p>A proteção da marca é fundamental para o crescimento seguro de {empresa}, e nossa equipe continua à disposição para ajudar.</p>
+                <p>A proteção da marca é fundamental para o crescimento seguro do seu negócio, e nossa equipe continua à disposição para ajudar.</p>
                 <p>Se houver interesse em retomar a conversa, é só entrar em contato!</p>
                 <br>
                 <p>Atenciosamente,<br>
                 Equipe Umbrella Marcas & Patentes</p>
                 <p>WhatsApp: (43) 9.9978-6664<br>
-                Email: contato@umbrellamarcas.com.br</p>
+                Email: euquero@umbrellamarcas.com.br</p>
             </body>
             </html>
             '''
