@@ -4,7 +4,7 @@ from pathlib import Path
 from flask import Flask, send_from_directory
 from flask_cors import CORS
 from src.models.lead import db
-from src.routes.user import user_bp
+from src.routes.user import user_bp    
 from src.routes.lead import lead_bp
 from src.routes.automation import automation_bp
 
