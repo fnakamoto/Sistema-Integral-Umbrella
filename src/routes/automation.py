@@ -49,9 +49,19 @@ def enviar_email(destinatario, assunto, conteudo):
         server.sendmail(EMAIL_USER, destinatario, text)
         server.quit()
         
+        print(f"DEBUG: E-mail enviado com sucesso para {destinatario}")
         return True
+    except smtplib.SMTPAuthenticationError as e:
+        print(f"ERRO SMTP: Falha de autenticação para {EMAIL_USER}. Verifique EMAIL_PASSWORD (use senha de aplicativo se necessário). Erro: {e}")
+        return False
+    except smtplib.SMTPConnectError as e:
+        print(f"ERRO SMTP: Falha ao conectar ao servidor SMTP {SMTP_SERVER}:{SMTP_PORT}. Verifique o servidor e a porta. Erro: {e}")
+        return False
+    except smtplib.SMTPException as e:
+        print(f"ERRO SMTP: Ocorreu um erro SMTP ao enviar e-mail. Erro: {e}")
+        return False
     except Exception as e:
-        print(f"Erro ao enviar e-mail: {e}")
+        print(f"ERRO GERAL: Erro inesperado ao enviar e-mail. Erro: {e}")
         return False
 
 @automation_bp.route('/templates', methods=['GET'])
@@ -195,8 +205,8 @@ def trigger_followup(lead_id):
     if ultima_interacao and ultima_interacao.data_envio > datetime.utcnow() - timedelta(hours=24):
         return jsonify({'error': 'Follow-up já enviado nas últimas 24 horas'}), 400
     
-    # Simular envio de e-mail (em produção, usar configurações reais)
-    sucesso = True  # enviar_email(lead.email, assunto, conteudo)
+    # ATIVAR O ENVIO REAL DE E-MAIL AQUI
+    sucesso = enviar_email(lead.email, assunto, conteudo)
     
     if sucesso:
         # Registrar a interação
@@ -219,7 +229,7 @@ def trigger_followup(lead_id):
             'interacao': interacao.to_dict()
         })
     else:
-        return jsonify({'error': 'Falha ao enviar e-mail'}), 500
+        return jsonify({'error': 'Falha ao enviar e-mail. Verifique as configurações SMTP e os logs.'}), 500
 
 @automation_bp.route('/automation/leads-for-followup', methods=['GET'])
 def leads_for_followup():
@@ -350,13 +360,13 @@ def inicializar_templates():
                 <h2>Olá {nome}!</h2>
                 <p>Muito obrigado pelo seu interesse nos serviços da Umbrella Marcas & Patentes.</p>
                 <p>Somos especialistas em registro de marcas e propriedade intelectual, e nosso propósito é proteger o seu sonho!</p>
-                <p>Em breve, um de nossos especialistas entrará em contato para apresentar nossas soluções personalizadas para você.</p>
+                <p>Em breve, um de nossos especialistas entrará em contato para apresentar nossas soluções personalizadas para {empresa}.</p>
                 <p>Enquanto isso, fique à vontade para conhecer mais sobre nossos serviços.</p>
                 <br>
                 <p>Atenciosamente,<br>
                 Equipe Umbrella Marcas & Patentes</p>
                 <p>WhatsApp: (43) 9.9978-6664<br>
-                Email: euquero@umbrellamarcas.com.br</p>
+                Email: contato@umbrellamarcas.com.br</p>
             </body>
             </html>
             '''
@@ -370,12 +380,12 @@ def inicializar_templates():
                 <h2>Olá {nome}!</h2>
                 <p>Esperamos que tenha tido a oportunidade de revisar nossa apresentação comercial.</p>
                 <p>Caso tenha alguma dúvida ou precise de esclarecimentos adicionais, estamos à disposição!</p>
-                <p>Nossos especialistas podem agendar uma conversa para discutir como podemos ajudar a proteger sua marca.</p>
-                <br>
+                <p>Nossos especialistas podem agendar uma conversa para discutir como podemos ajudar {empresa} a proteger sua marca.</p>
+                    <br>
                 <p>Atenciosamente,<br>
                 Equipe Umbrella Marcas & Patentes</p>
                 <p>WhatsApp: (43) 9.9978-6664<br>
-                Email: euquero@umbrellamarcas.com.br</p>
+                Email: contato@umbrellamarcas.com.br</p>
             </body>
             </html>
             '''
@@ -394,7 +404,7 @@ def inicializar_templates():
                 <p>Atenciosamente,<br>
                 Equipe Umbrella Marcas & Patentes</p>
                 <p>WhatsApp: (43) 9.9978-6664<br>
-                Email: euquero@umbrellamarcas.com.br</p>
+                Email: contato@umbrellamarcas.com.br</p>
             </body>
             </html>
             '''
@@ -413,7 +423,7 @@ def inicializar_templates():
                 <p>Atenciosamente,<br>
                 Equipe Umbrella Marcas & Patentes</p>
                 <p>WhatsApp: (43) 9.9978-6664<br>
-                Email: euquero@umbrellamarcas.com.br</p>
+                Email: contato@umbrellamarcas.com.br</p>
             </body>
             </html>
             '''
@@ -427,13 +437,13 @@ def inicializar_templates():
                 <h2>Olá {nome}!</h2>
                 <p>Notamos que faz um tempo que não conversamos sobre o registro de sua marca.</p>
                 <p>Sabemos que às vezes os projetos ficam em standby, mas queremos lembrar que estamos aqui quando você estiver pronto.</p>
-                <p>A proteção da marca é fundamental para o crescimento seguro do seu negócio, e nossa equipe continua à disposição para ajudar.</p>
+                <p>A proteção da marca é fundamental para o crescimento seguro de {empresa}, e nossa equipe continua à disposição para ajudar.</p>
                 <p>Se houver interesse em retomar a conversa, é só entrar em contato!</p>
                 <br>
                 <p>Atenciosamente,<br>
                 Equipe Umbrella Marcas & Patentes</p>
                 <p>WhatsApp: (43) 9.9978-6664<br>
-                Email: euquero@umbrellamarcas.com.br</p>
+                Email: contato@umbrellamarcas.com.br</p>
             </body>
             </html>
             '''
