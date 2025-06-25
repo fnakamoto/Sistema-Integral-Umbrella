@@ -33,6 +33,11 @@
             display: flex;
             flex-direction: column;
             min-height: 400px; /* Altura mínima para as colunas */
+            transition: background-color 0.2s ease-in-out; /* Transição para feedback visual */
+        }
+        .pipeline-column.drag-over {
+            background-color: #e0f7fa; /* Cor de fundo quando um card está sobre a coluna */
+            border: 2px dashed #007bff;
         }
         .column-header {
             font-weight: bold;
@@ -56,6 +61,14 @@
             margin-bottom: 10px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
             cursor: grab; /* Indica que o card é arrastável */
+            transition: transform 0.2s ease-in-out;
+        }
+        .lead-card:active {
+            cursor: grabbing;
+        }
+        .lead-card.dragging {
+            opacity: 0.5;
+            border: 2px dashed #007bff;
         }
         .lead-card h4 {
             margin: 0 0 5px 0;
@@ -89,6 +102,7 @@
 
     <script>
         const pipelineContainer = document.getElementById('pipeline-container');
+        let draggedLeadId = null; // Variável para armazenar o ID do lead sendo arrastado
 
         // Definir as etapas do pipeline (deve ser a mesma lista do backend)
         const etapas = [
@@ -144,6 +158,30 @@
             }).format(value);
         }
 
+        // Função para atualizar a etapa do lead no backend
+        async function updateLeadStage(leadId, newStage) {
+            try {
+                const response = await fetch(`/api/leads/${leadId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ etapa: newStage })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const updatedLead = await response.json();
+                console.log(`Lead ${updatedLead.nome} atualizado para a etapa: ${updatedLead.etapa}`);
+                return true;
+            } catch (error) {
+                console.error("Erro ao atualizar etapa do lead:", error);
+                alert("Erro ao mover o lead. Por favor, tente novamente.");
+                return false;
+            }
+        }
+
         async function renderPipeline() {
             pipelineContainer.innerHTML = ''; // Limpa a mensagem de carregamento
 
@@ -156,6 +194,27 @@
                 const column = document.createElement('div');
                 column.classList.add('pipeline-column');
                 column.dataset.etapa = etapa; // Adiciona um data attribute para identificar a etapa
+
+                // Adiciona eventos de drag and drop para as colunas
+                column.addEventListener('dragover', (e) => {
+                    e.preventDefault(); // Permite o drop
+                    column.classList.add('drag-over');
+                });
+                column.addEventListener('dragleave', () => {
+                    column.classList.remove('drag-over');
+                });
+                column.addEventListener('drop', async (e) => {
+                    e.preventDefault();
+                    column.classList.remove('drag-over');
+                    if (draggedLeadId) {
+                        const newStage = column.dataset.etapa;
+                        const success = await updateLeadStage(draggedLeadId, newStage);
+                        if (success) {
+                            renderPipeline(); // Re-renderiza o pipeline após o sucesso
+                        }
+                        draggedLeadId = null; // Limpa o ID do lead arrastado
+                    }
+                });
 
                 const columnHeader = document.createElement('div');
                 columnHeader.classList.add('column-header');
@@ -177,7 +236,17 @@
                     const card = document.createElement('div');
                     card.classList.add('lead-card');
                     card.dataset.leadId = lead.id; // Adiciona um data attribute para identificar o lead
-                    card.draggable = true; // Torna o card arrastável (para a próxima etapa)
+                    card.draggable = true; // Torna o card arrastável
+
+                    // Adiciona eventos de drag and drop para os cards
+                    card.addEventListener('dragstart', (e) => {
+                        draggedLeadId = lead.id;
+                        e.dataTransfer.setData('text/plain', lead.id); // Necessário para Firefox
+                        card.classList.add('dragging');
+                    });
+                    card.addEventListener('dragend', () => {
+                        card.classList.remove('dragging');
+                    });
 
                     card.innerHTML = `
                         <h4>${lead.nome}</h4>
