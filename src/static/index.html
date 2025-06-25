@@ -239,18 +239,29 @@
         .follow-up-button:hover {
             background-color: #0056b3;
         }
-        #initializeTemplatesButton {
-            padding: 10px 20px;
-            background-color: #6c757d;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-bottom: 20px;
-            transition: background-color 0.3s ease;
+        /* Estilos para o histórico de interações */
+        .interaction-history {
+            margin-top: 10px;
+            border-top: 1px solid #eee;
+            padding-top: 8px;
+            font-size: 0.85em;
+            color: #666;
         }
-        #initializeTemplatesButton:hover {
-            background-color: #5a6268;
+        .interaction-history h5 {
+            margin: 0 0 5px 0;
+            color: #444;
+        }
+        .interaction-item {
+            margin-bottom: 4px;
+            padding-left: 5px;
+            border-left: 2px solid #ccc;
+        }
+        .interaction-item span {
+            display: block;
+        }
+        .interaction-item .date {
+            font-size: 0.8em;
+            color: #888;
         }
     </style>
 </head>
@@ -280,9 +291,7 @@
         </form>
     </div>
 
-    <div style="text-align: center; margin-bottom: 20px;">
-        <button id="initializeTemplatesButton">Inicializar Templates Padrão</button>
-    </div>
+    <!-- O botão de inicializar templates foi removido daqui -->
 
     <div id="pipeline-container">
         <div class="loading-message">Carregando dados do pipeline...</div>
@@ -374,6 +383,20 @@
             }
         }
 
+        async function fetchLeadInteractions(leadId) {
+            try {
+                const response = await fetch(`/api/leads/${leadId}/interacoes`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const interactions = await response.json();
+                return interactions;
+            } catch (error) {
+                console.error(`Erro ao buscar interações para o lead ${leadId}:`, error);
+                return [];
+            }
+        }
+
         function formatCurrency(value) {
             if (value === null || value === undefined) {
                 return 'R$ 0,00';
@@ -385,6 +408,18 @@
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
             }).format(value);
+        }
+
+        function formatDate(isoString) {
+            if (!isoString) return '';
+            const date = new Date(isoString);
+            return date.toLocaleDateString('pt-BR', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
         }
 
         // Função para atualizar a etapa do lead no backend
@@ -557,6 +592,20 @@
                 fetchPipelineStats()
             ]);
 
+            // Mapeia leads por ID para fácil acesso
+            const leadsMap = new Map(leads.map(lead => [lead.id, lead]));
+
+            // Busca interações para todos os leads em paralelo
+            const interactionPromises = leads.map(lead => fetchLeadInteractions(lead.id));
+            const allInteractions = await Promise.all(interactionPromises);
+
+            // Mapeia interações por leadId
+            const interactionsMap = new Map();
+            leads.forEach((lead, index) => {
+                interactionsMap.set(lead.id, allInteractions[index]);
+            });
+
+
             etapas.forEach(etapa => {
                 const column = document.createElement('div');
                 column.classList.add('pipeline-column');
@@ -615,13 +664,31 @@
                         card.classList.remove('dragging');
                     });
 
-                    card.innerHTML = `
+                    let cardHtml = `
                         <h4>${lead.nome}</h4>
                         <p>${lead.email}</p>
                         ${lead.empresa ? `<p>Empresa: ${lead.empresa}</p>` : ''}
                         ${lead.valor_negocio !== null ? `<p class="value">Valor: ${formatCurrency(lead.valor_negocio)}</p>` : ''}
                         <button class="follow-up-button" data-lead-id="${lead.id}" data-lead-name="${lead.nome}" data-lead-email="${lead.email}">Follow-up</button>
                     `;
+
+                    // Adiciona histórico de interações
+                    const interactions = interactionsMap.get(lead.id) || [];
+                    if (interactions.length > 0) {
+                        cardHtml += `<div class="interaction-history"><h5>Últimas Interações:</h5>`;
+                        // Limita às 3 últimas interações para não sobrecarregar o card
+                        interactions.slice(0, 3).forEach(interaction => {
+                            cardHtml += `
+                                <div class="interaction-item">
+                                    <span>${interaction.tipo.charAt(0).toUpperCase() + interaction.tipo.slice(1)}: ${interaction.assunto}</span>
+                                    <span class="date">${formatDate(interaction.data_envio)}</span>
+                                </div>
+                            `;
+                        });
+                        cardHtml += `</div>`;
+                    }
+
+                    card.innerHTML = cardHtml;
                     column.appendChild(card);
                 });
 
@@ -636,38 +703,6 @@
                     const leadEmail = e.target.dataset.leadEmail;
                     openFollowUpModal(leadId, leadName, leadEmail);
                 });
-            });
-        }
-
-        // Lógica para o botão de inicialização de templates
-        const initializeTemplatesButton = document.getElementById('initializeTemplatesButton');
-        if (initializeTemplatesButton) {
-            initializeTemplatesButton.addEventListener('click', async () => {
-                if (confirm('Tem certeza que deseja inicializar os templates padrão? Isso pode adicionar templates duplicados se já existirem.')) {
-                    try {
-                        const response = await fetch('/api/automation/inicializar-templates', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            }
-                        });
-                        const result = await response.json();
-                        if (response.ok) {
-                            alert(result.message);
-                            // Opcional: Remover o botão após a inicialização para evitar cliques repetidos
-                            initializeTemplatesButton.remove();
-                            // Recarrega os templates no modal se ele estiver aberto
-                            if (followUpModal.style.display === 'flex') {
-                                openFollowUpModal(currentLeadIdForFollowUp, modalLeadName.textContent, modalLeadEmail.textContent);
-                            }
-                        } else {
-                            alert(`Erro: ${result.error || 'Falha ao inicializar templates.'}`);
-                        }
-                    } catch (error) {
-                        console.error("Erro ao inicializar templates:", error);
-                        alert("Erro ao inicializar templates. Verifique o console.");
-                    }
-                }
             });
         }
 
