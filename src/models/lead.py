@@ -12,6 +12,7 @@ class Lead(db.Model):
     cargo = db.Column(db.String(100), nullable=True)
     fonte = db.Column(db.String(50), nullable=True)
     etapa = db.Column(db.String(50), nullable=False, default='Primeiro contato')
+    valor_negocio = db.Column(db.Numeric(10, 2), nullable=True) # Novo campo para valor do negócio
     data_criacao = db.Column(db.DateTime, default=datetime.utcnow)
     data_ultima_interacao = db.Column(db.DateTime, default=datetime.utcnow)
     observacoes = db.Column(db.Text, nullable=True)
@@ -30,6 +31,7 @@ class Lead(db.Model):
             'cargo': self.cargo,
             'fonte': self.fonte,
             'etapa': self.etapa,
+            'valor_negocio': float(self.valor_negocio) if self.valor_negocio is not None else None, # Incluído no dict
             'data_criacao': self.data_criacao.isoformat() if self.data_criacao else None,
             'data_ultima_interacao': self.data_ultima_interacao.isoformat() if self.data_ultima_interacao else None,
             'observacoes': self.observacoes,
@@ -80,50 +82,4 @@ class TemplateEmail(db.Model):
     def to_dict(self):
         return {
             'id': self.id,
-            'etapa': self.etapa,
-            'assunto': self.assunto,
-            'conteudo': self.conteudo,
-            'ativo': self.ativo,
-            'data_criacao': self.data_criacao.isoformat() if self.data_criacao else None,
-            'data_atualizacao': self.data_atualizacao.isoformat() if self.data_atualizacao else None
-        }
-
-class AgendamentoAutomacao(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    lead_id = db.Column(db.Integer, db.ForeignKey('lead.id'), nullable=False)
-    etapa = db.Column(db.String(50), nullable=False)
-    data_agendamento = db.Column(db.DateTime, nullable=False)
-    executado = db.Column(db.Boolean, default=False)
-    data_execucao = db.Column(db.DateTime, nullable=True)
-    data_criacao = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    lead = db.relationship('Lead', backref=db.backref('agendamentos', lazy=True))
-    
-    def __repr__(self):
-        return f'<AgendamentoAutomacao Lead {self.lead_id} - {self.etapa}>'
-
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'lead_id': self.lead_id,
-            'etapa': self.etapa,
-            'data_agendamento': self.data_agendamento.isoformat() if self.data_agendamento else None,
-            'executado': self.executado,
-            'data_execucao': self.data_execucao.isoformat() if self.data_execucao else None,
-            'data_criacao': self.data_criacao.isoformat() if self.data_criacao else None
-        }
-
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-
-    def __repr__(self):
-        return f'<User {self.username}>'
-
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'username': self.username,
-            'email': self.email
-        }
+            'etapa': self
