@@ -10,9 +10,10 @@ from src.routes.automation import automation_bp
 
 # Diretório base do projeto
 BASE_DIR = Path(__file__).resolve().parent
+STATIC_DIR = BASE_DIR / 'src' / 'static'
 
 # Criação da aplicação Flask
-app = Flask(__name__, static_folder=str(BASE_DIR / 'static'))
+app = Flask(__name__, static_folder=str(STATIC_DIR))
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'asdf#FGSgvasgf$5$WGT')
 
 # Habilita CORS
