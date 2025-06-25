@@ -1,5 +1,14 @@
+# Framework principal
 Flask==3.1.1
+
+# Suporte a CORS (para requisições cross-origin no frontend)
 Flask-Cors==6.0.0
+
+# ORM integrado ao Flask
 Flask-SQLAlchemy==3.1.1
-psycopg2-binary==2.9.10
+
+# ORM puro (usado internamente pelo Flask-SQLAlchemy)
 SQLAlchemy==2.0.41
+
+# Driver para PostgreSQL (recomendado para produção no Railway)
+psycopg2-binary==2.9.10
