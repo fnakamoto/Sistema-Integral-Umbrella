@@ -127,7 +127,7 @@ Para ativar o envio automático de e-mails com seu domínio da Umbrella (via Hos
 SMTP_SERVER=smtp.hostinger.com
 SMTP_PORT=587
 EMAIL_USER=fabiano@umbrellamarcas.com.br
-EMAIL_PASSWORD=sua-senha-de-e-mail
+EMAIL_PASSWORD=Vtc@Vz+0
 ```
 
 > ✅ **Importante:**
