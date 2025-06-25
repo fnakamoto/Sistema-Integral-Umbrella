@@ -29,12 +29,15 @@ database_url = os.getenv('DATABASE_URL')
 if database_url:
     # Railway - PostgreSQL
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+    # DEBUG: Imprime a URL do banco de dados (apenas uma parte por segurança)
+    print(f"DEBUG: Usando DATABASE_URL do ambiente: {database_url[:20]}...") 
 else:
     # Local - SQLite
     db_dir = BASE_DIR / 'database'
     db_dir.mkdir(exist_ok=True)
     sqlite_path = db_dir / 'app.db'
     app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{sqlite_path}"
+    print(f"DEBUG: Usando SQLite local: {sqlite_path}")
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -45,6 +48,7 @@ db.init_app(app)
 with app.app_context():
     try:
         db.create_all()
+        print("DEBUG: db.create_all() executado. Tabelas criadas ou já existentes.")
     except Exception as e:
         print(f"[ERRO] ao criar as tabelas: {e}")
 
