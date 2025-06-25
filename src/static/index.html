@@ -17,6 +17,55 @@
             text-align: center;
             margin-bottom: 30px;
         }
+        #lead-form-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        #lead-form-container h2 {
+            margin-top: 0;
+            color: #0056b3;
+        }
+        #lead-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        #lead-form label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        #lead-form input[type="text"],
+        #lead-form input[type="email"],
+        #lead-form input[type="number"] {
+            width: calc(100% - 20px);
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+        #lead-form button {
+            grid-column: span 2;
+            padding: 12px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: background-color 0.3s ease;
+        }
+        #lead-form button:hover {
+            background-color: #218838;
+        }
+
         #pipeline-container {
             display: flex;
             overflow-x: auto; /* Permite rolagem horizontal se houver muitas colunas */
@@ -96,12 +145,36 @@
 <body>
     <h1>Umbrella Leads Manager - Pipeline de Vendas</h1>
 
+    <div id="lead-form-container">
+        <h2>Adicionar Novo Lead</h2>
+        <form id="lead-form">
+            <div>
+                <label for="lead-name">Nome:</label>
+                <input type="text" id="lead-name" required>
+            </div>
+            <div>
+                <label for="lead-email">Email:</label>
+                <input type="email" id="lead-email" required>
+            </div>
+            <div>
+                <label for="lead-company">Empresa:</label>
+                <input type="text" id="lead-company">
+            </div>
+            <div>
+                <label for="lead-value">Valor do Negócio (R$):</label>
+                <input type="number" id="lead-value" step="0.01" min="0">
+            </div>
+            <button type="submit">Adicionar Lead</button>
+        </form>
+    </div>
+
     <div id="pipeline-container">
         <div class="loading-message">Carregando dados do pipeline...</div>
     </div>
 
     <script>
         const pipelineContainer = document.getElementById('pipeline-container');
+        const leadForm = document.getElementById('lead-form');
         let draggedLeadId = null; // Variável para armazenar o ID do lead sendo arrastado
 
         // Definir as etapas do pipeline (deve ser a mesma lista do backend)
@@ -181,6 +254,47 @@
                 return false;
             }
         }
+
+        // Função para criar um novo lead
+        leadForm.addEventListener('submit', async (e) => {
+            e.preventDefault(); // Impede o recarregamento da página
+
+            const name = document.getElementById('lead-name').value;
+            const email = document.getElementById('lead-email').value;
+            const company = document.getElementById('lead-company').value;
+            const value = document.getElementById('lead-value').value;
+
+            const newLeadData = {
+                nome: name,
+                email: email,
+                empresa: company,
+                valor_negocio: value ? parseFloat(value) : null, // Converte para float, ou null se vazio
+                etapa: 'Primeiro contato' // Novo lead sempre começa na primeira etapa
+            };
+
+            try {
+                const response = await fetch('/api/leads', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(newLeadData)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const createdLead = await response.json();
+                console.log('Lead criado com sucesso:', createdLead);
+                leadForm.reset(); // Limpa o formulário
+                renderPipeline(); // Re-renderiza o pipeline para mostrar o novo lead
+            } catch (error) {
+                console.error("Erro ao criar lead:", error);
+                alert("Erro ao criar o lead. Por favor, verifique os dados e tente novamente.");
+            }
+        });
+
 
         async function renderPipeline() {
             pipelineContainer.innerHTML = ''; // Limpa a mensagem de carregamento
