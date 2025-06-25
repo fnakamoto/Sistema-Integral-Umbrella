@@ -42,8 +42,16 @@ def enviar_email(destinatario, assunto, conteudo):
         
         msg.attach(MIMEText(conteudo, 'html'))
         
-        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
-        server.starttls()
+        # --- MUDANÇA AQUI: Usando SMTP_SSL para porta 465 ---
+        # Se a porta for 465, usa SMTP_SSL (conexão SSL/TLS implícita)
+        if SMTP_PORT == 465:
+            server = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT)
+        # Caso contrário, usa SMTP normal e STARTTLS (conexão TLS explícita)
+        else:
+            server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+            server.starttls()
+        # --- FIM DA MUDANÇA ---
+
         server.login(EMAIL_USER, EMAIL_PASSWORD)
         text = msg.as_string()
         server.sendmail(EMAIL_USER, destinatario, text)
@@ -380,8 +388,8 @@ def inicializar_templates():
                 <h2>Olá {nome}!</h2>
                 <p>Esperamos que tenha tido a oportunidade de revisar nossa apresentação comercial.</p>
                 <p>Caso tenha alguma dúvida ou precise de esclarecimentos adicionais, estamos à disposição!</p>
-                <p>Nossos especialistas podem agendar uma conversa para discutir como podemos ajudar {empresa} a proteger sua marca.</p>
-                    <br>
+                <p>Nossos especialistas podem agendar uma conversa para discutir como podemos ajudar {{empresa}} a proteger sua marca.</p>
+                <br>
                 <p>Atenciosamente,<br>
                 Equipe Umbrella Marcas & Patentes</p>
                 <p>WhatsApp: (43) 9.9978-6664<br>
@@ -472,3 +480,4 @@ def inicializar_templates():
         'message': f'{templates_criados} templates inicializados com sucesso',
         'templates_criados': templates_criados
     })
+
