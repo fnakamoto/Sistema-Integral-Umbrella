@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from src.models.lead import db, Lead, Interacao, TemplateEmail, AgendamentoAutomacao
 from datetime import datetime
+from sqlalchemy import func # Importar func para usar funções de agregação como sum
 
 lead_bp = Blueprint('lead', __name__)
 
@@ -36,6 +37,7 @@ def create_lead():
         cargo=data.get('cargo'),
         fonte=data.get('fonte'),
         etapa=data.get('etapa', 'Primeiro contato'),
+        valor_negocio=data.get('valor_negocio'), # Adicionado o novo campo
         observacoes=data.get('observacoes'),
         status=data.get('status', 'Ativo')
     )
@@ -72,6 +74,8 @@ def update_lead(lead_id):
     if data.get('etapa'):
         lead.etapa = data['etapa']
         lead.data_ultima_interacao = datetime.utcnow()
+    if data.get('valor_negocio') is not None: # Adicionado o novo campo
+        lead.valor_negocio = data['valor_negocio']
     if data.get('observacoes') is not None:
         lead.observacoes = data['observacoes']
     if data.get('status'):
@@ -166,7 +170,7 @@ def create_agendamento(lead_id):
 
 @lead_bp.route('/pipeline', methods=['GET'])
 def get_pipeline():
-    """Retorna estatísticas do pipeline"""
+    """Retorna estatísticas do pipeline, incluindo a soma dos valores por etapa"""
     etapas = [
         'Primeiro contato',
         'Apresentação comercial',
@@ -178,10 +182,20 @@ def get_pipeline():
         'Negócio perdido'
     ]
     
-    pipeline = {}
+    pipeline_data = {}
     for etapa in etapas:
+        # Contagem de leads ativos na etapa
         count = Lead.query.filter_by(etapa=etapa, status='Ativo').count()
-        pipeline[etapa] = count
+        
+        # Soma dos valores de negócio ativos na etapa
+        # Usamos func.coalesce para tratar casos onde valor_negocio é NULL, retornando 0.0
+        # e .scalar() para obter o resultado da soma diretamente
+        total_valor = db.session.query(func.sum(func.coalesce(Lead.valor_negocio, 0.0))).filter_by(etapa=etapa, status='Ativo').scalar()
+        
+        pipeline_data[etapa] = {
+            'count': count,
+            'total_valor': float(total_valor) if total_valor is not None else 0.0 # Garante que seja float ou 0.0
+        }
     
     total_leads = Lead.query.filter_by(status='Ativo').count()
     total_inativos = Lead.query.filter_by(status='Inativo').count()
@@ -189,7 +203,7 @@ def get_pipeline():
     total_perdidos = Lead.query.filter_by(status='Perdido').count()
     
     return jsonify({
-        'pipeline': pipeline,
+        'pipeline': pipeline_data,
         'total_leads': total_leads,
         'total_inativos': total_inativos,
         'total_convertidos': total_convertidos,
