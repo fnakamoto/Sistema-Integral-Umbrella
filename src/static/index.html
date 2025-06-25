@@ -263,6 +263,19 @@
             font-size: 0.8em;
             color: #888;
         }
+        #initializeTemplatesButton {
+            padding: 10px 20px;
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: background-color 0.3s ease;
+        }
+        #initializeTemplatesButton:hover {
+            background-color: #5a6268;
+        }
     </style>
 </head>
 <body>
@@ -291,7 +304,9 @@
         </form>
     </div>
 
-    <!-- O botão de inicializar templates foi removido daqui -->
+    <div style="text-align: center; margin-bottom: 20px;">
+        <button id="initializeTemplatesButton">Inicializar Templates Padrão</button>
+    </div>
 
     <div id="pipeline-container">
         <div class="loading-message">Carregando dados do pipeline...</div>
@@ -706,8 +721,41 @@
             });
         }
 
+        // Lógica para o botão de inicialização de templates
+        const initializeTemplatesButton = document.getElementById('initializeTemplatesButton');
+        if (initializeTemplatesButton) {
+            initializeTemplatesButton.addEventListener('click', async () => {
+                if (confirm('Tem certeza que deseja inicializar os templates padrão? Isso pode adicionar templates duplicados se já existirem.')) {
+                    try {
+                        const response = await fetch('/api/automation/inicializar-templates', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        const result = await response.json();
+                        if (response.ok) {
+                            alert(result.message);
+                            // Opcional: Remover o botão após a inicialização para evitar cliques repetidos
+                            // initializeTemplatesButton.remove(); // Removido para permitir múltiplos cliques se necessário
+                            // Recarrega os templates no modal se ele estiver aberto
+                            if (followUpModal.style.display === 'flex') {
+                                openFollowUpModal(currentLeadIdForFollowUp, modalLeadName.textContent, modalLeadEmail.textContent);
+                            }
+                        } else {
+                            alert(`Erro: ${result.error || 'Falha ao inicializar templates.'}`);
+                        }
+                    } catch (error) {
+                        console.error("Erro ao inicializar templates:", error);
+                        alert("Erro ao inicializar templates. Verifique o console.");
+                    }
+                }
+            });
+        }
+
         // Renderiza o pipeline quando a página carregar
         document.addEventListener('DOMContentLoaded', renderPipeline);
     </script>
 </body>
 </html>
+
