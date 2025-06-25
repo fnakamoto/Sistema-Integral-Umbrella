@@ -45,7 +45,6 @@ Thumbs.db
 # Logs
 *.log
 
-# Database folder but not the folder itself
+# Database folder, but track the folder itself (for SQLite local)
 database/
 !database/.gitkeep
-
