@@ -6,9 +6,8 @@ from src.routes.user import user_bp
 from src.routes.automation import automation_bp
 import os
 
-# Aponta corretamente para o index.html dentro de src/templates
-app = Flask(__name__, template_folder='src/templates')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///leads.db'  # ou substitua pelo PostgreSQL do Railway
+app = Flask(__name__)  # agora usa os diretórios padrão: ./templates e ./static
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///leads.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -20,7 +19,7 @@ app.register_blueprint(automation_bp, url_prefix='/api')
 
 @app.route('/')
 def index():
-    return render_template('index.html')  # Carrega o HTML ao acessar "/"
+    return render_template('index.html')
 
 @app.route("/api/dev/create-tabelas")
 def criar_tabelas_temporario():
