@@ -13,6 +13,16 @@ document.addEventListener('DOMContentLoaded', () => {
     'Negócio perdido'
   ];
 
+  const modal = document.getElementById('detalhesModal');
+  const closeModalBtn = document.getElementById('closeDetalhes');
+  const nomeSpan = document.getElementById('detalhesNome');
+  const emailSpan = document.getElementById('detalhesEmail');
+  const observacoesLista = document.getElementById('observacoesLista');
+  const interacoesLista = document.getElementById('interacoesLista');
+  const novaObservacao = document.getElementById('novaObservacao');
+  const salvarObsBtn = document.getElementById('btnSalvarObservacao');
+  let leadAtualId = null;
+
   function formatCurrency(value) {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -23,7 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
   async function fetchLeads() {
     try {
       const response = await fetch('/api/leads');
-      if (!response.ok) throw new Error(response.status);
       return await response.json();
     } catch (error) {
       console.error("Erro ao buscar leads:", error);
@@ -35,7 +44,6 @@ document.addEventListener('DOMContentLoaded', () => {
   async function fetchPipelineStats() {
     try {
       const response = await fetch('/api/pipeline');
-      if (!response.ok) throw new Error(response.status);
       return await response.json();
     } catch (error) {
       console.error("Erro ao buscar estatísticas:", error);
@@ -45,17 +53,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function updateLeadStage(id, newStage) {
     try {
-      const response = await fetch(`/api/leads/${id}`, {
+      await fetch(`/api/leads/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ etapa: newStage })
       });
-      if (!response.ok) throw new Error(response.status);
-      console.log(`Lead ${id} movido para ${newStage}`);
       renderPipeline();
     } catch (err) {
       alert("Erro ao atualizar etapa do lead.");
-      console.error(err);
     }
   }
 
@@ -94,6 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <select data-id="${lead.id}" class="etapa-select">
               ${etapas.map(et => `<option value="${et}" ${et === lead.etapa ? 'selected' : ''}>${et}</option>`).join('')}
             </select>
+            <button class="ver-detalhes" data-id="${lead.id}" data-nome="${lead.nome}" data-email="${lead.email}">Ver detalhes</button>
           `;
           col.appendChild(card);
         });
@@ -109,7 +115,60 @@ document.addEventListener('DOMContentLoaded', () => {
         updateLeadStage(leadId, novaEtapa);
       });
     });
+
+    document.querySelectorAll('.ver-detalhes').forEach(btn => {
+      btn.addEventListener('click', async e => {
+        const leadId = e.target.getAttribute('data-id');
+        const nome = e.target.getAttribute('data-nome');
+        const email = e.target.getAttribute('data-email');
+        leadAtualId = leadId;
+        nomeSpan.textContent = nome;
+        emailSpan.textContent = email;
+        observacoesLista.innerHTML = '';
+        interacoesLista.innerHTML = '';
+        novaObservacao.value = '';
+
+        const obsRes = await fetch(`/api/leads/${leadId}/observacoes`);
+        const interRes = await fetch(`/api/leads/${leadId}/interacoes`);
+        const observacoes = await obsRes.json();
+        const interacoes = await interRes.json();
+
+        observacoes.forEach(o => {
+          const li = document.createElement('li');
+          li.textContent = `${o.conteudo} (${new Date(o.data_criacao).toLocaleString()})`;
+          observacoesLista.appendChild(li);
+        });
+
+        interacoes.slice(0, 5).forEach(i => {
+          const li = document.createElement('li');
+          li.textContent = `${i.tipo}: ${i.assunto} (${new Date(i.data_envio).toLocaleString()})`;
+          interacoesLista.appendChild(li);
+        });
+
+        modal.style.display = 'flex';
+      });
+    });
   }
+
+  closeModalBtn.addEventListener('click', () => {
+    modal.style.display = 'none';
+  });
+
+  window.addEventListener('click', e => {
+    if (e.target === modal) modal.style.display = 'none';
+  });
+
+  salvarObsBtn.addEventListener('click', async () => {
+    const texto = novaObservacao.value.trim();
+    if (!texto) return;
+    await fetch(`/api/leads/${leadAtualId}/observacoes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ conteudo: texto })
+    });
+    renderPipeline();
+    modal.style.display = 'none';
+  });
 
   if (leadForm) {
     leadForm.addEventListener('submit', async (e) => {
@@ -133,7 +192,6 @@ document.addEventListener('DOMContentLoaded', () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(novoLead)
         });
-        if (!response.ok) throw new Error(response.status);
         await response.json();
         leadForm.reset();
         renderPipeline();
