@@ -769,4 +769,13 @@
         // Lógica para o botão de inicialização de templates
         const initializeTemplatesButton = document.getElementById('initializeTemplatesButton');
         if (initializeTemplatesButton) {
-            initializeTemplatesButton.addEventListener('click
+            initializeTemplatesButton.addEventListener('click', async () => {
+                if (confirm('Tem certeza que deseja inicializar os templates padrão? Isso pode adicionar templates duplicados se já existirem.')) {
+                    try {
+                        const response = await fetch('/api/automation/inicializar-templates', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        const result = await response.json();
