@@ -28,6 +28,23 @@
     <button id="executarAutomacoesBtn" style="background: #007bff; padding: 10px 20px;">Executar Automações Pendentes</button>
   </div>
 
+  <!-- Painel de Filtros -->
+  <div id="filtros-container" style="max-width:1200px; margin:20px auto; padding:15px; background:#fff; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
+    <h3>Filtrar Leads</h3>
+    <div style="display:flex; flex-wrap:wrap; gap:10px;">
+      <input type="date" id="filtroDataInicio" placeholder="Data inicial">
+      <input type="date" id="filtroDataFim" placeholder="Data final">
+      <select id="filtroEtapa">
+        <option value="">Todas as etapas</option>
+      </select>
+      <select id="filtroUsuario">
+        <option value="">Todos os usuários</option>
+      </select>
+      <input type="text" id="filtroBusca" placeholder="Buscar por nome ou email">
+      <button id="btnAplicarFiltros">Aplicar Filtros</button>
+    </div>
+  </div>
+
   <div class="form-container">
     <form id="lead-form">
       <input type="text" id="lead-name" placeholder="Nome" required>
