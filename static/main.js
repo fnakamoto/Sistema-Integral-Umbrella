@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   const pipelineContainer = document.getElementById('pipeline-container');
   const leadForm = document.getElementById('lead-form');
+  const executarAutomacoesBtn = document.getElementById('executarAutomacoesBtn');
 
   const etapas = [
     'Primeiro contato',
@@ -25,7 +26,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const dataAgendada = document.getElementById('dataAgendada');
   const agendarBtn = document.getElementById('btnAgendarAutomacao');
   const agendamentosLista = document.getElementById('agendamentosLista');
+  const historicoLista = document.getElementById('historicoLista');
   let leadAtualId = null;
+
+  if (executarAutomacoesBtn) {
+    executarAutomacoesBtn.addEventListener('click', async () => {
+      const res = await fetch('/api/executar-agendamentos', { method: 'POST' });
+      const resultado = await res.json();
+      alert(`${resultado.enviados.length} automações executadas com sucesso!`);
+      renderPipeline();
+    });
+  }
 
   function formatCurrency(value) {
     return new Intl.NumberFormat('pt-BR', {
@@ -93,6 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
       })
     });
     carregarAgendamentos(leadAtualId);
+    renderHistorico(leadAtualId);
   }
 
   async function carregarAgendamentos(leadId) {
@@ -101,6 +113,27 @@ document.addEventListener('DOMContentLoaded', () => {
     agendamentosLista.innerHTML = lista.map(a => `
       <li><b>${a.template.assunto}</b> para ${new Date(a.data_agendada).toLocaleDateString()} - ${a.status}</li>
     `).join('');
+    return lista;
+  }
+
+  async function renderHistorico(leadId) {
+    const obsRes = await fetch(`/api/leads/${leadId}/observacoes`);
+    const interRes = await fetch(`/api/leads/${leadId}/interacoes`);
+    const agendRes = await fetch(`/api/leads/${leadId}/agendamentos`);
+
+    const observacoes = await obsRes.json();
+    const interacoes = await interRes.json();
+    const agendamentos = await agendRes.json();
+
+    const eventos = [];
+
+    observacoes.forEach(o => eventos.push({ tipo: 'Observação', conteudo: o.conteudo, data: o.data_criacao }));
+    interacoes.forEach(i => eventos.push({ tipo: 'Interação', conteudo: `${i.tipo}: ${i.assunto}`, data: i.data_envio }));
+    agendamentos.forEach(a => eventos.push({ tipo: 'Agendamento', conteudo: `${a.template.assunto} (${a.status})`, data: a.data_agendada }));
+
+    eventos.sort((a, b) => new Date(b.data) - new Date(a.data));
+
+    historicoLista.innerHTML = eventos.map(e => `<li><b>${e.tipo}</b>: ${e.conteudo} <small>(${new Date(e.data).toLocaleString()})</small></li>`).join('');
   }
 
   async function renderPipeline() {
@@ -186,6 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         await carregarTemplates();
         await carregarAgendamentos(leadId);
+        await renderHistorico(leadId);
         modal.style.display = 'flex';
       });
     });
