@@ -27,7 +27,23 @@ document.addEventListener('DOMContentLoaded', () => {
   const agendarBtn = document.getElementById('btnAgendarAutomacao');
   const agendamentosLista = document.getElementById('agendamentosLista');
   const historicoLista = document.getElementById('historicoLista');
+
+  const filtroDataInicio = document.getElementById('filtroDataInicio');
+  const filtroDataFim = document.getElementById('filtroDataFim');
+  const filtroEtapa = document.getElementById('filtroEtapa');
+  const filtroUsuario = document.getElementById('filtroUsuario');
+  const filtroBusca = document.getElementById('filtroBusca');
+  const btnAplicarFiltros = document.getElementById('btnAplicarFiltros');
+
   let leadAtualId = null;
+  let leadsOriginais = [];
+
+  etapas.forEach(etapa => {
+    const opt = document.createElement('option');
+    opt.value = etapa;
+    opt.textContent = etapa;
+    filtroEtapa.appendChild(opt);
+  });
 
   if (executarAutomacoesBtn) {
     executarAutomacoesBtn.addEventListener('click', async () => {
@@ -38,17 +54,43 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  if (btnAplicarFiltros) {
+    btnAplicarFiltros.addEventListener('click', () => {
+      aplicarFiltros();
+    });
+  }
+
+  function aplicarFiltros() {
+    const inicio = filtroDataInicio?.value;
+    const fim = filtroDataFim?.value;
+    const etapa = filtroEtapa?.value;
+    const usuario = filtroUsuario?.value;
+    const termo = filtroBusca?.value.toLowerCase();
+
+    const filtrados = leadsOriginais.filter(lead => {
+      const criado = new Date(lead.data_criacao);
+      const okData = (!inicio || criado >= new Date(inicio)) && (!fim || criado <= new Date(fim));
+      const okEtapa = !etapa || lead.etapa === etapa;
+      const okUsuario = !usuario || lead.usuario === usuario;
+      const okBusca = !termo || (lead.nome.toLowerCase().includes(termo) || lead.email.toLowerCase().includes(termo));
+      return okData && okEtapa && okUsuario && okBusca;
+    });
+
+    renderPipeline(filtrados);
+  }
+
   function formatCurrency(value) {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL'
     }).format(value || 0);
   }
-
   async function fetchLeads() {
     try {
       const response = await fetch('/api/leads');
-      return await response.json();
+      const data = await response.json();
+      leadsOriginais = data;
+      return data;
     } catch (error) {
       console.error("Erro ao buscar leads:", error);
       pipelineContainer.innerHTML = '<p style="color:red">Erro ao carregar leads.</p>';
@@ -136,9 +178,10 @@ document.addEventListener('DOMContentLoaded', () => {
     historicoLista.innerHTML = eventos.map(e => `<li><b>${e.tipo}</b>: ${e.conteudo} <small>(${new Date(e.data).toLocaleString()})</small></li>`).join('');
   }
 
-  async function renderPipeline() {
+  async function renderPipeline(leads = null) {
     pipelineContainer.innerHTML = '';
-    const [leads, stats] = await Promise.all([fetchLeads(), fetchPipelineStats()]);
+    if (!leads) leads = await fetchLeads();
+    const stats = await fetchPipelineStats();
 
     etapas.forEach(etapa => {
       const col = document.createElement('div');
