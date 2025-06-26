@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const pipelineContainer = document.getElementById('pipeline-container');
   const leadForm = document.getElementById('lead-form');
   const executarAutomacoesBtn = document.getElementById('executarAutomacoesBtn');
+  const btnExportarCSV = document.getElementById('btnExportarCSV');
 
   const etapas = [
     'Primeiro contato',
@@ -37,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let leadAtualId = null;
   let leadsOriginais = [];
+  let leadsFiltrados = [];
 
   etapas.forEach(etapa => {
     const opt = document.createElement('option');
@@ -60,6 +62,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  if (btnExportarCSV) {
+    btnExportarCSV.addEventListener('click', () => {
+      exportarCSV(leadsFiltrados.length ? leadsFiltrados : leadsOriginais);
+    });
+  }
+
   function aplicarFiltros() {
     const inicio = filtroDataInicio?.value;
     const fim = filtroDataFim?.value;
@@ -67,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const usuario = filtroUsuario?.value;
     const termo = filtroBusca?.value.toLowerCase();
 
-    const filtrados = leadsOriginais.filter(lead => {
+    leadsFiltrados = leadsOriginais.filter(lead => {
       const criado = new Date(lead.data_criacao);
       const okData = (!inicio || criado >= new Date(inicio)) && (!fim || criado <= new Date(fim));
       const okEtapa = !etapa || lead.etapa === etapa;
@@ -76,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return okData && okEtapa && okUsuario && okBusca;
     });
 
-    renderPipeline(filtrados);
+    renderPipeline(leadsFiltrados);
   }
 
   function formatCurrency(value) {
@@ -85,6 +93,34 @@ document.addEventListener('DOMContentLoaded', () => {
       currency: 'BRL'
     }).format(value || 0);
   }
+  function exportarCSV(leads) {
+    if (!leads || leads.length === 0) {
+      alert("Nenhum lead para exportar.");
+      return;
+    }
+
+    const header = ['Nome', 'Email', 'Empresa', 'Valor', 'Etapa', 'Data de Criação'];
+    const linhas = leads.map(lead => [
+      `"${lead.nome}"`,
+      `"${lead.email}"`,
+      `"${lead.empresa || ''}"`,
+      `"${lead.valor_negocio || 0}"`,
+      `"${lead.etapa}"`,
+      `"${lead.data_criacao}"`
+    ]);
+
+    const csvContent = [header, ...linhas].map(e => e.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "leads-exportados.csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+
   async function fetchLeads() {
     try {
       const response = await fetch('/api/leads');
