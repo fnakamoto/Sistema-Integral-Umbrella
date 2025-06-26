@@ -125,5 +125,22 @@
   <div id="pipeline-container">Carregando pipeline...</div>
 
   <script src="/static/js/main.js"></script>
+  <!-- Modal de Detalhes -->
+<div id="detalhesModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; justify-content:center; align-items:center; background:rgba(0,0,0,0.5); z-index:1000;">
+  <div class="modal-content" style="background:white; padding:20px; border-radius:8px; width:400px; max-height:80vh; overflow:auto; position:relative;">
+    <span id="closeDetalhes" style="position:absolute; top:10px; right:15px; font-size:18px; cursor:pointer;">&times;</span>
+    <h2>Detalhes do Lead</h2>
+    <p><strong>Nome:</strong> <span id="detalhesNome"></span></p>
+    <p><strong>Email:</strong> <span id="detalhesEmail"></span></p>
+
+    <h3>Observações</h3>
+    <ul id="observacoesLista" style="padding-left: 20px;"></ul>
+    <textarea id="novaObservacao" rows="3" placeholder="Adicionar nova observação..." style="width:100%;"></textarea>
+    <button id="btnSalvarObservacao" style="margin-top:10px;">Salvar Observação</button>
+
+    <h3 style="margin-top:20px;">Interações Recentes</h3>
+    <ul id="interacoesLista" style="padding-left: 20px;"></ul>
+  </div>
+</div>
 </body>
 </html>
