@@ -70,3 +70,12 @@ if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
 
+@app.route("/api/dev/create-tabelas")
+def criar_tabelas_temporario():
+    try:
+        db.create_all()
+        return "Tabelas criadas com sucesso"
+    except Exception as e:
+        return f"Erro: {str(e)}", 500
+
+
