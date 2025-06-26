@@ -30,17 +30,19 @@ class TemplateEmail(db.Model):
     assunto = db.Column(db.String(255), nullable=False)
     conteudo = db.Column(db.Text, nullable=False)
 
-class AgendamentoAutomacao(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    lead_id = db.Column(db.Integer, db.ForeignKey('lead.id'), nullable=False)
-    template_id = db.Column(db.Integer, db.ForeignKey('template_email.id'), nullable=False)
-    data_agendada = db.Column(db.DateTime, nullable=False)
-    status = db.Column(db.String(20), default='Pendente')
-    data_envio = db.Column(db.DateTime)
-
 class ObservacaoLead(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     lead_id = db.Column(db.Integer, db.ForeignKey('lead.id'), nullable=False)
     conteudo = db.Column(db.Text, nullable=False)
     data_criacao = db.Column(db.DateTime, default=datetime.utcnow)
 
+class AgendamentoAutomacao(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    lead_id = db.Column(db.Integer, db.ForeignKey('lead.id'), nullable=False)
+    template_id = db.Column(db.Integer, db.ForeignKey('template_email.id'), nullable=False)
+    data_agendada = db.Column(db.DateTime, nullable=False)
+    status = db.Column(db.String(20), default='Pendente')  # Pendente, Enviado
+    data_envio = db.Column(db.DateTime)
+
+    lead = db.relationship('Lead', backref='agendamentos')
+    template = db.relationship('TemplateEmail')
