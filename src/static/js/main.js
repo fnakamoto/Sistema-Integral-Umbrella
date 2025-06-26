@@ -1,7 +1,17 @@
-
 document.addEventListener('DOMContentLoaded', () => {
   const pipelineContainer = document.getElementById('pipeline-container');
   const leadForm = document.getElementById('lead-form');
+
+  const etapas = [
+    'Primeiro contato',
+    'Apresentação comercial',
+    'Viabilidade',
+    'Proposta',
+    'Negociação',
+    'Cliente',
+    'Follow-up',
+    'Negócio perdido'
+  ];
 
   function formatCurrency(value) {
     return new Intl.NumberFormat('pt-BR', {
@@ -35,38 +45,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function renderPipeline() {
     pipelineContainer.innerHTML = '';
-    const [leads, pipelineStats] = await Promise.all([fetchLeads(), fetchPipelineStats()]);
-    const etapas = [
-      'Primeiro contato',
-      'Apresentação comercial',
-      'Viabilidade',
-      'Proposta',
-      'Negociação',
-      'Cliente',
-      'Follow-up',
-      'Negócio perdido'
-    ];
+    const [leads, stats] = await Promise.all([fetchLeads(), fetchPipelineStats()]);
 
     etapas.forEach(etapa => {
       const col = document.createElement('div');
       col.className = 'pipeline-column';
+
+      const etapaStats = stats.pipeline[etapa] || { count: 0, total_valor: 0 };
       const header = document.createElement('div');
       header.className = 'column-header';
-      const stats = pipelineStats.pipeline[etapa] || { count: 0, total_valor: 0 };
-      header.innerHTML = \`\${etapa} <span>\${stats.count} leads (\${formatCurrency(stats.total_valor)})</span>\`;
+      header.innerHTML = `
+        <span>${etapa}</span>
+        <span>${etapaStats.count} lead(s) (${formatCurrency(etapaStats.total_valor)})</span>
+      `;
       col.appendChild(header);
 
-      leads.filter(lead => lead.etapa === etapa).forEach(lead => {
-        const card = document.createElement('div');
-        card.className = 'lead-card';
-        card.innerHTML = \`
-          <h4>\${lead.nome}</h4>
-          <p>\${lead.email}</p>
-          <p>\${lead.empresa || ''}</p>
-          <p class="value">Valor: \${formatCurrency(lead.valor_negocio)}</p>
-        \`;
-        col.appendChild(card);
-      });
+      const leadsEtapa = leads.filter(lead => lead.etapa === etapa);
+      if (leadsEtapa.length === 0) {
+        const vazio = document.createElement('div');
+        vazio.innerHTML = "<p style='color:gray;font-size:0.9em;'>Nenhum lead</p>";
+        col.appendChild(vazio);
+      } else {
+        leadsEtapa.forEach(lead => {
+          const card = document.createElement('div');
+          card.className = 'lead-card';
+          card.innerHTML = `
+            <h4>${lead.nome}</h4>
+            <p>${lead.email}</p>
+            <p>${lead.empresa || ''}</p>
+            <p class="value">Valor: ${formatCurrency(lead.valor_negocio)}</p>
+          `;
+          col.appendChild(card);
+        });
+      }
 
       pipelineContainer.appendChild(col);
     });
