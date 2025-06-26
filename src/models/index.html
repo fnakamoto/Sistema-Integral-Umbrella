@@ -23,6 +23,11 @@
 </head>
 <body>
   <h1>Umbrella Leads Manager</h1>
+
+  <div style="text-align:center; margin: 10px;">
+    <button id="executarAutomacoesBtn" style="background: #007bff; padding: 10px 20px;">Executar Automações Pendentes</button>
+  </div>
+
   <div class="form-container">
     <form id="lead-form">
       <input type="text" id="lead-name" placeholder="Nome" required>
@@ -62,6 +67,9 @@
 
       <div class="section-title">Agendamentos</div>
       <ul id="agendamentosLista"></ul>
+
+      <div class="section-title">Histórico do Lead</div>
+      <ul id="historicoLista"></ul>
     </div>
   </div>
 
