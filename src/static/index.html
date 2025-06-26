@@ -718,4 +718,55 @@
                     card.addEventListener('dragstart', (e) => {
                         draggedLeadId = lead.id;
                         e.dataTransfer.setData('text/plain', lead.id); // Necessário para Firefox
-                        card.classList.add('dragging
+                        card.classList.add('dragging');
+                    });
+                    card.addEventListener('dragend', () => {
+                        card.classList.remove('dragging');
+                    });
+
+                    let cardHtml = `
+                        <h4>${lead.nome}</h4>
+                        <p>${lead.email}</p>
+                        ${lead.empresa ? `<p>Empresa: ${lead.empresa}</p>` : ''}
+                        ${lead.valor_negocio !== null ? `<p class="value">Valor: ${formatCurrency(lead.valor_negocio)}</p>` : ''}
+                        <button class="follow-up-button" data-lead-id="${lead.id}" data-lead-name="${lead.nome}" data-lead-email="${lead.email}">Follow-up</button>
+                    `;
+
+                    // Adiciona histórico de interações
+                    const interactions = interactionsMap.get(lead.id) || [];
+                    if (interactions.length > 0) {
+                        cardHtml += `<div class="interaction-history"><h5>Últimas Interações:</h5>`;
+                        // Limita às 3 últimas interações para não sobrecarregar o card
+                        interactions.slice(0, 3).forEach(interaction => {
+                            cardHtml += `
+                                <div class="interaction-item">
+                                    <span>${interaction.tipo.charAt(0).toUpperCase() + interaction.tipo.slice(1)}: ${interaction.assunto}</span>
+                                    <span class="date">${formatDate(interaction.data_envio)}</span>
+                                </div>
+                            `;
+                        });
+                        cardHtml += `</div>`;
+                    }
+
+                    card.innerHTML = cardHtml;
+                    column.appendChild(card);
+                });
+
+                pipelineContainer.appendChild(column);
+            });
+
+            // Adiciona event listeners para os botões de follow-up após a renderização
+            document.querySelectorAll('.follow-up-button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const leadId = e.target.dataset.leadId;
+                    const leadName = e.target.dataset.leadName;
+                    const leadEmail = e.target.dataset.leadEmail;
+                    openFollowUpModal(leadId, leadName, leadEmail);
+                });
+            });
+        }
+
+        // Lógica para o botão de inicialização de templates
+        const initializeTemplatesButton = document.getElementById('initializeTemplatesButton');
+        if (initializeTemplatesButton) {
+            initializeTemplatesButton.addEventListener('click
