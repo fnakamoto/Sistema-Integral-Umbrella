@@ -1,146 +1,58 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Umbrella Leads Manager - Pipeline</title>
+  <meta charset="UTF-8">
+  <title>Umbrella Leads Manager</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-      background-color: #f4f7f6;
-      color: #333;
-    }
-    h1 {
-      color: #0056b3;
-      text-align: center;
-      margin-bottom: 30px;
-    }
-    #lead-form-container {
-      background-color: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
-      max-width: 800px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-    #lead-form {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 15px;
-    }
-    #lead-form input[type="text"],
-    #lead-form input[type="email"],
-    #lead-form input[type="number"] {
-      width: calc(100% - 20px);
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      font-size: 1em;
-    }
-    #lead-form button {
-      grid-column: span 2;
-      padding: 12px 20px;
-      background-color: #28a745;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 1.1em;
-      transition: background-color 0.3s ease;
-    }
-    #lead-form button:hover {
-      background-color: #218838;
-    }
-    #pipeline-container {
-      display: flex;
-      overflow-x: auto;
-      gap: 20px;
-      padding-bottom: 20px;
-    }
-    .pipeline-column {
-      flex-shrink: 0;
-      width: 300px;
-      background-color: #fff;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      padding: 15px;
-      display: flex;
-      flex-direction: column;
-      min-height: 400px;
-    }
-    .column-header {
-      font-weight: bold;
-      margin-bottom: 15px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid #eee;
-      color: #0056b3;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .lead-card {
-      background-color: #f9f9f9;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      padding: 10px;
-      margin-bottom: 10px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-      cursor: grab;
-    }
-    .lead-card h4 {
-      margin: 0 0 5px 0;
-      color: #333;
-    }
-    .lead-card p {
-      margin: 0 0 3px 0;
-      font-size: 0.9em;
-      color: #555;
-    }
-    .lead-card .value {
-      font-weight: bold;
-      color: #28a745;
-      font-size: 1em;
-      margin-top: 5px;
-    }
+    body { font-family: Arial, sans-serif; background: #f7f9fa; margin: 0; padding: 0; }
+    h1 { text-align: center; color: #2c3e50; margin-top: 20px; }
+    .form-container { max-width: 800px; margin: 20px auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    input, button { padding: 10px; margin: 5px 0; width: 100%; border-radius: 5px; border: 1px solid #ccc; }
+    button { background-color: #4CAF50; color: white; cursor: pointer; }
+    .pipeline { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; margin: 40px auto; max-width: 1200px; }
+    .pipeline-column { flex: 1; min-width: 220px; background: #fff; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); padding: 15px; }
+    .column-header { font-weight: bold; margin-bottom: 10px; display: flex; justify-content: space-between; }
+    .lead-card { background: #e9f5ff; padding: 10px; margin-bottom: 10px; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; justify-content: center; align-items: center; background: rgba(0,0,0,0.5); z-index: 1000; }
+    .modal-content { background: white; padding: 20px; border-radius: 8px; width: 400px; max-height: 80vh; overflow: auto; position: relative; }
+    .close-button { position: absolute; top: 10px; right: 15px; font-size: 18px; cursor: pointer; }
+    select { width: 100%; padding: 5px; border-radius: 5px; }
   </style>
 </head>
 <body>
   <h1>Umbrella Leads Manager</h1>
-
-  <div id="lead-form-container">
+  <div class="form-container">
     <form id="lead-form">
-      <input type="text" id="lead-name" placeholder="Nome" required />
-      <input type="email" id="lead-email" placeholder="E-mail" required />
-      <input type="text" id="lead-company" placeholder="Empresa" />
-      <input type="number" id="lead-value" placeholder="Valor do negócio" />
+      <input type="text" id="lead-name" placeholder="Nome" required>
+      <input type="email" id="lead-email" placeholder="E-mail" required>
+      <input type="text" id="lead-company" placeholder="Empresa">
+      <input type="number" id="lead-value" placeholder="Valor do negócio">
       <button type="submit">Cadastrar Lead</button>
     </form>
   </div>
 
-  <div id="pipeline-container">Carregando pipeline...</div>
-
-  <script src="/static/js/main.js"></script>
-  <!-- Modal de Detalhes -->
-<div id="detalhesModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; justify-content:center; align-items:center; background:rgba(0,0,0,0.5); z-index:1000;">
-  <div class="modal-content" style="background:white; padding:20px; border-radius:8px; width:400px; max-height:80vh; overflow:auto; position:relative;">
-    <span id="closeDetalhes" style="position:absolute; top:10px; right:15px; font-size:18px; cursor:pointer;">&times;</span>
-    <h2>Detalhes do Lead</h2>
-    <p><strong>Nome:</strong> <span id="detalhesNome"></span></p>
-    <p><strong>Email:</strong> <span id="detalhesEmail"></span></p>
-
-    <h3>Observações</h3>
-    <ul id="observacoesLista" style="padding-left: 20px;"></ul>
-    <textarea id="novaObservacao" rows="3" placeholder="Adicionar nova observação..." style="width:100%;"></textarea>
-    <button id="btnSalvarObservacao" style="margin-top:10px;">Salvar Observação</button>
-
-    <h3 style="margin-top:20px;">Interações Recentes</h3>
-    <ul id="interacoesLista" style="padding-left: 20px;"></ul>
+  <div id="pipeline-container" class="pipeline">
+    <p>Carregando pipeline...</p>
   </div>
-</div>
+
+  <!-- Modal de Detalhes -->
+  <div id="detalhesModal" class="modal">
+    <div class="modal-content">
+      <span class="close-button" id="closeDetalhes">&times;</span>
+      <h2>Detalhes do Lead</h2>
+      <p><strong>Nome:</strong> <span id="detalhesNome"></span></p>
+      <p><strong>Email:</strong> <span id="detalhesEmail"></span></p>
+
+      <h3>Observações</h3>
+      <ul id="observacoesLista"></ul>
+      <textarea id="novaObservacao" rows="3" placeholder="Adicionar nova observação..."></textarea>
+      <button id="btnSalvarObservacao">Salvar Observação</button>
+
+      <h3>Interações Recentes</h3>
+      <ul id="interacoesLista"></ul>
+    </div>
+  </div>
+
+  <script src="/static/main.js"></script>
 </body>
 </html>
