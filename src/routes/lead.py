@@ -230,3 +230,34 @@ def get_status():
     """Retorna lista de status disponíveis"""
     status = ['Ativo', 'Inativo', 'Convertido', 'Perdido']
     return jsonify(status)
+    from flask import jsonify, request
+from src.models.lead import db, Lead, ObservacaoLead
+
+@lead_bp.route('/leads/<int:lead_id>/observacoes', methods=['GET'])
+def listar_observacoes(lead_id):
+    observacoes = ObservacaoLead.query.filter_by(lead_id=lead_id).order_by(ObservacaoLead.data_criacao.desc()).all()
+    return jsonify([
+        {
+            'id': o.id,
+            'conteudo': o.conteudo,
+            'data_criacao': o.data_criacao.isoformat()
+        } for o in observacoes
+    ])
+
+@lead_bp.route('/leads/<int:lead_id>/observacoes', methods=['POST'])
+def adicionar_observacao(lead_id):
+    dados = request.get_json()
+    conteudo = dados.get('conteudo')
+    if not conteudo:
+        return jsonify({'error': 'Conteúdo obrigatório'}), 400
+
+    nova_obs = ObservacaoLead(lead_id=lead_id, conteudo=conteudo)
+    db.session.add(nova_obs)
+    db.session.commit()
+
+    return jsonify({
+        'id': nova_obs.id,
+        'conteudo': nova_obs.conteudo,
+        'data_criacao': nova_obs.data_criacao.isoformat()
+    }), 201
+
