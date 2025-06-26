@@ -43,6 +43,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  async function updateLeadStage(id, newStage) {
+    try {
+      const response = await fetch(`/api/leads/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ etapa: newStage })
+      });
+      if (!response.ok) throw new Error(response.status);
+      console.log(`Lead ${id} movido para ${newStage}`);
+      renderPipeline();
+    } catch (err) {
+      alert("Erro ao atualizar etapa do lead.");
+      console.error(err);
+    }
+  }
+
   async function renderPipeline() {
     pipelineContainer.innerHTML = '';
     const [leads, stats] = await Promise.all([fetchLeads(), fetchPipelineStats()]);
@@ -74,12 +90,24 @@ document.addEventListener('DOMContentLoaded', () => {
             <p>${lead.email}</p>
             <p>${lead.empresa || ''}</p>
             <p class="value">Valor: ${formatCurrency(lead.valor_negocio)}</p>
+            <label style="font-size: 0.85em;">Alterar etapa:</label>
+            <select data-id="${lead.id}" class="etapa-select">
+              ${etapas.map(et => `<option value="${et}" ${et === lead.etapa ? 'selected' : ''}>${et}</option>`).join('')}
+            </select>
           `;
           col.appendChild(card);
         });
       }
 
       pipelineContainer.appendChild(col);
+    });
+
+    document.querySelectorAll('.etapa-select').forEach(select => {
+      select.addEventListener('change', e => {
+        const leadId = e.target.getAttribute('data-id');
+        const novaEtapa = e.target.value;
+        updateLeadStage(leadId, novaEtapa);
+      });
     });
   }
 
