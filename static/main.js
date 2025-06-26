@@ -21,6 +21,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const interacoesLista = document.getElementById('interacoesLista');
   const novaObservacao = document.getElementById('novaObservacao');
   const salvarObsBtn = document.getElementById('btnSalvarObservacao');
+  const templateSelect = document.getElementById('templateSelect');
+  const dataAgendada = document.getElementById('dataAgendada');
+  const agendarBtn = document.getElementById('btnAgendarAutomacao');
+  const agendamentosLista = document.getElementById('agendamentosLista');
   let leadAtualId = null;
 
   function formatCurrency(value) {
@@ -62,6 +66,41 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (err) {
       alert("Erro ao atualizar etapa do lead.");
     }
+  }
+
+  async function fetchTemplates() {
+    const res = await fetch('/api/templates');
+    return await res.json();
+  }
+
+  async function carregarTemplates() {
+    const templates = await fetchTemplates();
+    templateSelect.innerHTML = templates.map(t => `<option value="${t.id}">${t.assunto}</option>`).join('');
+  }
+
+  async function salvarAgendamento() {
+    const templateId = templateSelect.value;
+    const data = dataAgendada.value;
+    if (!templateId || !data || !leadAtualId) return;
+
+    await fetch('/api/agendamentos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        lead_id: leadAtualId,
+        template_id: parseInt(templateId),
+        data_agendada: data + 'T00:00:00'
+      })
+    });
+    carregarAgendamentos(leadAtualId);
+  }
+
+  async function carregarAgendamentos(leadId) {
+    const res = await fetch(`/api/leads/${leadId}/agendamentos`);
+    const lista = await res.json();
+    agendamentosLista.innerHTML = lista.map(a => `
+      <li><b>${a.template.assunto}</b> para ${new Date(a.data_agendada).toLocaleDateString()} - ${a.status}</li>
+    `).join('');
   }
 
   async function renderPipeline() {
@@ -145,6 +184,8 @@ document.addEventListener('DOMContentLoaded', () => {
           interacoesLista.appendChild(li);
         });
 
+        await carregarTemplates();
+        await carregarAgendamentos(leadId);
         modal.style.display = 'flex';
       });
     });
@@ -169,6 +210,8 @@ document.addEventListener('DOMContentLoaded', () => {
     renderPipeline();
     modal.style.display = 'none';
   });
+
+  agendarBtn.addEventListener('click', salvarAgendamento);
 
   if (leadForm) {
     leadForm.addEventListener('submit', async (e) => {
