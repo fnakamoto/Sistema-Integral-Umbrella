@@ -614,7 +614,7 @@
                         template_id: selectedTemplateId || null,
                         assunto_customizado: customAssunto,
                         conteudo_customizado: customConteudo
-                    }) // CORREÇÃO AQUI: Objeto JSON estava incompleto
+                    })
                 });
 
                 const result = await response.json();
@@ -714,4 +714,8 @@
                     card.dataset.leadId = lead.id; // Adiciona um data attribute para identificar o lead
                     card.draggable = true; // Torna o card arrastável
 
-                    // Adiciona eventos de
+                    // Adiciona eventos de drag and drop para os cards
+                    card.addEventListener('dragstart', (e) => {
+                        draggedLeadId = lead.id;
+                        e.dataTransfer.setData('text/plain', lead.id); // Necessário para Firefox
+                        card.classList.add('dragging
