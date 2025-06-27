@@ -6,6 +6,10 @@
   <style>
     body { font-family: Arial, sans-serif; background: #f7f9fa; margin: 0; padding: 0; }
     h1 { text-align: center; color: #2c3e50; margin-top: 20px; }
+    .painel-indicadores { display: flex; justify-content: center; flex-wrap: wrap; gap: 15px; margin: 20px auto; max-width: 1200px; }
+    .indicador { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); width: 180px; text-align: center; }
+    .indicador h4 { margin: 0 0 10px; font-size: 1em; color: #2c3e50; }
+    .indicador p { margin: 0; font-size: 1.2em; font-weight: bold; color: #007bff; }
     .form-container { max-width: 800px; margin: 20px auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
     input, button, select, textarea { padding: 10px; margin: 5px 0; width: 100%; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box; }
     button { background-color: #4CAF50; color: white; cursor: pointer; }
@@ -29,6 +33,15 @@
 
   <div style="text-align:center; margin: 10px;">
     <button id="executarAutomacoesBtn" style="background: #007bff; padding: 10px 20px;">Executar Automações Pendentes</button>
+  </div>
+
+  <!-- Painel de Indicadores -->
+  <div id="painel-indicadores" class="painel-indicadores">
+    <div class="indicador"><h4>Total de Leads</h4><p id="indicadorTotalLeads">0</p></div>
+    <div class="indicador"><h4>Valor Total</h4><p id="indicadorTotalValor">R$ 0,00</p></div>
+    <div class="indicador"><h4>Inativos (10+ dias)</h4><p id="indicadorInativos">0</p></div>
+    <div class="indicador"><h4>Interações Recentes</h4><p id="indicadorRecentes">0</p></div>
+    <div class="indicador"><h4>Agendado Hoje</h4><p id="indicadorHoje">0</p></div>
   </div>
 
   <!-- Painel de Filtros -->
