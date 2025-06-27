@@ -56,13 +56,13 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.setItem('tema', novoTema);
     });
   }
+
   etapas.forEach(etapa => {
     const opt = document.createElement('option');
     opt.value = etapa;
     opt.textContent = etapa;
     filtroEtapa.appendChild(opt);
   });
-
   if (executarAutomacoesBtn) {
     executarAutomacoesBtn.addEventListener('click', async () => {
       const res = await fetch('/api/executar-agendamentos', { method: 'POST' });
@@ -113,20 +113,6 @@ document.addEventListener('DOMContentLoaded', () => {
     filtroDataFim.value = ultimoDia.toISOString().slice(0, 10);
     aplicarFiltros();
   });
-  function exportarCSV(leads) {
-    const linhas = [['Nome', 'Email', 'Empresa', 'Etapa', 'Valor']];
-    leads.forEach(lead => {
-      linhas.push([lead.nome, lead.email, lead.empresa, lead.etapa, lead.valor_negocio]);
-    });
-    const csv = linhas.map(l => l.join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'leads.csv';
-    a.click();
-    URL.revokeObjectURL(url);
-  }
 
   leadForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -148,7 +134,6 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('Erro ao cadastrar lead');
     }
   });
-
   closeModalBtn.addEventListener('click', () => modal.style.display = 'none');
 
   salvarObsBtn.addEventListener('click', async () => {
@@ -175,6 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     renderPipeline();
   });
+
   function aplicarFiltros() {
     leadsFiltrados = leadsOriginais.filter(lead => {
       const dataLead = new Date(lead.data_criacao);
@@ -194,6 +180,35 @@ document.addEventListener('DOMContentLoaded', () => {
     return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   }
 
+  function renderResumoUsuarios(leads) {
+    const container = document.getElementById('resumo-usuarios');
+    if (!container) {
+      console.warn('⚠️ Elemento #resumo-usuarios não encontrado. Ignorando resumo de usuários.');
+      return;
+    }
+
+    const usuarios = {};
+    leads.forEach(lead => {
+      const usuario = lead.usuario || 'Sem usuário';
+      if (!usuarios[usuario]) usuarios[usuario] = { total: 0, valor: 0, clientes: 0 };
+      usuarios[usuario].total++;
+      usuarios[usuario].valor += lead.valor_negocio || 0;
+      if (lead.etapa === 'Cliente') usuarios[usuario].clientes++;
+    });
+
+    container.innerHTML = '';
+    Object.entries(usuarios).forEach(([nome, dados]) => {
+      const card = document.createElement('div');
+      card.className = 'usuario-card';
+      card.innerHTML = `
+        <h4>${nome}</h4>
+        <p>Leads: ${dados.total}</p>
+        <p>Valor Total: ${formatCurrency(dados.valor)}</p>
+        <p>Clientes: ${dados.clientes}</p>
+      `;
+      container.appendChild(card);
+    });
+  }
   function renderPipeline() {
     fetch('/api/leads')
       .then(res => res.json())
@@ -220,138 +235,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         renderResumoUsuarios(lista);
-        const stats = calcularStatsLocais(lista);
-        renderGraficoEtapas(stats);
-        renderGraficoValores(stats);
-        atualizarIndicadores(lista, stats);
-        atualizarMetasMes(lista);
+        atualizarIndicadores(lista);
       });
   }
 
-  function abrirModal(lead) {
-    leadAtualId = lead.id;
-    nomeSpan.textContent = lead.nome;
-    emailSpan.textContent = lead.email;
-    modal.style.display = 'flex';
-    novaObservacao.value = '';
-    novaObservacao.focus();
-  }
-
-  function baixarGrafico(idCanvas) {
-    const canvas = document.getElementById(idCanvas);
-    if (!canvas) return;
-    const url = canvas.toDataURL('image/png');
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${idCanvas}.png`;
-    link.click();
-  }
-
-  function renderResumoUsuarios(leads) {
-    const container = document.getElementById('resumo-usuarios');
-    if (!container) return;
-    const usuarios = {};
-    leads.forEach(lead => {
-      const usuario = lead.usuario || 'Sem usuário';
-      if (!usuarios[usuario]) usuarios[usuario] = { total: 0, valor: 0, clientes: 0 };
-      usuarios[usuario].total++;
-      usuarios[usuario].valor += lead.valor_negocio || 0;
-      if (lead.etapa === 'Cliente') usuarios[usuario].clientes++;
-    });
-    container.innerHTML = '';
-    Object.entries(usuarios).forEach(([nome, dados]) => {
-      const card = document.createElement('div');
-      card.className = 'usuario-card';
-      card.innerHTML = `<h4>${nome}</h4><p>Leads: ${dados.total}</p><p>Valor Total: ${formatCurrency(dados.valor)}</p><p>Clientes: ${dados.clientes}</p>`;
-      function renderResumoUsuarios(leads) {
-  const container = document.getElementById('resumo-usuarios');
-  if (!container) {
-    console.warn('⚠️ Elemento #resumo-usuarios não encontrado. Ignorando resumo de usuários.');
-    return;
-  }
-
-  const usuarios = {};
-  leads.forEach(lead => {
-    const usuario = lead.usuario || 'Sem usuário';
-    if (!usuarios[usuario]) usuarios[usuario] = { total: 0, valor: 0, clientes: 0 };
-    usuarios[usuario].total++;
-    usuarios[usuario].valor += lead.valor_negocio || 0;
-    if (lead.etapa === 'Cliente') usuarios[usuario].clientes++;
-  });
-
-  container.innerHTML = '';
-  Object.entries(usuarios).forEach(([nome, dados]) => {
-    const card = document.createElement('div');
-    card.className = 'usuario-card';
-    card.innerHTML = `
-      <h4>${nome}</h4>
-      <p>Leads: ${dados.total}</p>
-      <p>Valor Total: ${formatCurrency(dados.valor)}</p>
-      <p>Clientes: ${dados.clientes}</p>
-    `;
-    container.appendChild(card);
-  });
-}
-
-      
-    });
-  }
-
-  function calcularStatsLocais(leads) {
-    const pipeline = {};
-    leads.forEach(lead => {
-      const etapa = lead.etapa;
-      if (!pipeline[etapa]) pipeline[etapa] = { count: 0, total_valor: 0 };
-      pipeline[etapa].count++;
-      pipeline[etapa].total_valor += lead.valor_negocio || 0;
-    });
-    return { pipeline };
-  }
-
-  function renderGraficoEtapas(stats) {
-    const ctx = document.getElementById('graficoEtapas');
-    if (!ctx) return;
-    const etapas = Object.keys(stats.pipeline);
-    const quantidades = etapas.map(e => stats.pipeline[e].count);
-    if (window.graficoEtapasInstance) window.graficoEtapasInstance.destroy();
-    window.graficoEtapasInstance = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: etapas,
-        datasets: [{ label: 'Quantidade de Leads', data: quantidades, backgroundColor: '#007bff', borderRadius: 5 }]
-      },
-      options: {
-        responsive: true,
-        plugins: { legend: { display: false } },
-        scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
-      }
-    });
-  }
-
-  function renderGraficoValores(stats) {
-    const ctx = document.getElementById('graficoValoresEtapas');
-    if (!ctx) return;
-    const etapas = Object.keys(stats.pipeline);
-    const valores = etapas.map(e => stats.pipeline[e].total_valor || 0);
-    if (window.graficoValoresInstance) window.graficoValoresInstance.destroy();
-    window.graficoValoresInstance = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: etapas,
-        datasets: [{ label: 'Valor por Etapa (R$)', data: valores, backgroundColor: '#28a745', borderRadius: 5 }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: context => formatCurrency(context.raw) } }
-        },
-        scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
-      }
-    });
-  }
-
-  function atualizarIndicadores(leads, stats) {
+  function atualizarIndicadores(leads) {
     document.getElementById('indicadorTotalLeads').textContent = leads.length;
     document.getElementById('indicadorTotalValor').textContent = formatCurrency(leads.reduce((s, l) => s + (l.valor_negocio || 0), 0));
     document.getElementById('indicadorInativos').textContent = leads.filter(l => {
@@ -368,20 +256,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }).length;
   }
 
-  function atualizarMetasMes(leads) {
-    const hoje = new Date();
-    const mesAtual = hoje.getMonth();
-    const anoAtual = hoje.getFullYear();
-    const leadsDoMes = leads.filter(l => {
-      const data = new Date(l.data_criacao);
-      return data.getMonth() === mesAtual && data.getFullYear() === anoAtual;
+  function abrirModal(lead) {
+    leadAtualId = lead.id;
+    nomeSpan.textContent = lead.nome;
+    emailSpan.textContent = lead.email;
+    modal.style.display = 'flex';
+    novaObservacao.value = '';
+    novaObservacao.focus();
+  }
+
+  function exportarCSV(leads) {
+    const linhas = [['Nome', 'Email', 'Empresa', 'Etapa', 'Valor']];
+    leads.forEach(lead => {
+      linhas.push([lead.nome, lead.email, lead.empresa, lead.etapa, lead.valor_negocio]);
     });
-    const totalLeads = leadsDoMes.length;
-    const valorClientes = leadsDoMes.filter(l => l.etapa === 'Cliente').reduce((s, l) => s + (l.valor_negocio || 0), 0);
-    document.getElementById('metaLeads').textContent = totalLeads;
-    document.getElementById('metaNegocios').textContent = formatCurrency(valorClientes);
-    document.getElementById('metaProgressoLeads').textContent = `${Math.round(totalLeads / 100 * 100)}%`;
-    document.getElementById('metaProgressoValor').textContent = `${Math.round(valorClientes / 50000 * 100)}%`;
+    const csv = linhas.map(l => l.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'leads.csv';
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   renderPipeline();
