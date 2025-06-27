@@ -44,7 +44,6 @@ document.addEventListener('DOMContentLoaded', () => {
   let leadsOriginais = [];
   let leadsFiltrados = [];
 
-  // Inicializa tema salvo
   const temaAtual = localStorage.getItem('tema');
   if (temaAtual === 'escuro') document.body.setAttribute('data-tema', 'escuro');
 
@@ -63,6 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
     opt.textContent = etapa;
     filtroEtapa.appendChild(opt);
   });
+
   if (executarAutomacoesBtn) {
     executarAutomacoesBtn.addEventListener('click', async () => {
       const res = await fetch('/api/executar-agendamentos', { method: 'POST' });
@@ -134,6 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('Erro ao cadastrar lead');
     }
   });
+
   closeModalBtn.addEventListener('click', () => modal.style.display = 'none');
 
   salvarObsBtn.addEventListener('click', async () => {
@@ -183,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderResumoUsuarios(leads) {
     const container = document.getElementById('resumo-usuarios');
     if (!container) {
-      console.warn('⚠️ Elemento #resumo-usuarios não encontrado. Ignorando resumo de usuários.');
+      console.warn('❌ ID resumo-usuarios não encontrado no DOM. Renderização ignorada.');
       return;
     }
 
@@ -209,6 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
       container.appendChild(card);
     });
   }
+
   function renderPipeline() {
     fetch('/api/leads')
       .then(res => res.json())
@@ -234,6 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
           container.appendChild(coluna);
         });
 
+        console.log('➡️ Chamando renderResumoUsuarios() com', lista.length, 'leads');
         renderResumoUsuarios(lista);
         atualizarIndicadores(lista);
       });
