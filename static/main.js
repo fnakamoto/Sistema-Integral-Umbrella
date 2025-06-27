@@ -283,5 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
     URL.revokeObjectURL(url);
   }
 
+  setTimeout(() => {
   renderPipeline();
+}, 200);
 });
