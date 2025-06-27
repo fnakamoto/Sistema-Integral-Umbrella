@@ -93,34 +93,21 @@ document.addEventListener('DOMContentLoaded', () => {
       currency: 'BRL'
     }).format(value || 0);
   }
-  function exportarCSV(leads) {
-    if (!leads || leads.length === 0) {
-      alert("Nenhum lead para exportar.");
-      return;
-    }
 
-    const header = ['Nome', 'Email', 'Empresa', 'Valor', 'Etapa', 'Data de Criação'];
-    const linhas = leads.map(lead => [
-      `"${lead.nome}"`,
-      `"${lead.email}"`,
-      `"${lead.empresa || ''}"`,
-      `"${lead.valor_negocio || 0}"`,
-      `"${lead.etapa}"`,
-      `"${lead.data_criacao}"`
-    ]);
-
-    const csvContent = [header, ...linhas].map(e => e.join(",")).join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "leads-exportados.csv";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+  function isToday(dateStr) {
+    const today = new Date();
+    const d = new Date(dateStr);
+    return d.getFullYear() === today.getFullYear() &&
+           d.getMonth() === today.getMonth() &&
+           d.getDate() === today.getDate();
   }
 
+  function isRecent(dateStr) {
+    const now = new Date();
+    const d = new Date(dateStr);
+    const diff = (now - d) / (1000 * 60 * 60 * 24); // em dias
+    return diff <= 2;
+  }
   async function fetchLeads() {
     try {
       const response = await fetch('/api/leads');
@@ -144,74 +131,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  async function updateLeadStage(id, newStage) {
-    try {
-      await fetch(`/api/leads/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ etapa: newStage })
-      });
-      renderPipeline();
-    } catch (err) {
-      alert("Erro ao atualizar etapa do lead.");
-    }
-  }
-
-  async function fetchTemplates() {
-    const res = await fetch('/api/templates');
-    return await res.json();
-  }
-
-  async function carregarTemplates() {
-    const templates = await fetchTemplates();
-    templateSelect.innerHTML = templates.map(t => `<option value="${t.id}">${t.assunto}</option>`).join('');
-  }
-
-  async function salvarAgendamento() {
-    const templateId = templateSelect.value;
-    const data = dataAgendada.value;
-    if (!templateId || !data || !leadAtualId) return;
-
-    await fetch('/api/agendamentos', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        lead_id: leadAtualId,
-        template_id: parseInt(templateId),
-        data_agendada: data + 'T00:00:00'
-      })
-    });
-    carregarAgendamentos(leadAtualId);
-    renderHistorico(leadAtualId);
-  }
-
-  async function carregarAgendamentos(leadId) {
-    const res = await fetch(`/api/leads/${leadId}/agendamentos`);
-    const lista = await res.json();
-    agendamentosLista.innerHTML = lista.map(a => `
-      <li><b>${a.template.assunto}</b> para ${new Date(a.data_agendada).toLocaleDateString()} - ${a.status}</li>
-    `).join('');
-    return lista;
-  }
-
-  async function renderHistorico(leadId) {
-    const obsRes = await fetch(`/api/leads/${leadId}/observacoes`);
-    const interRes = await fetch(`/api/leads/${leadId}/interacoes`);
-    const agendRes = await fetch(`/api/leads/${leadId}/agendamentos`);
-
-    const observacoes = await obsRes.json();
-    const interacoes = await interRes.json();
-    const agendamentos = await agendRes.json();
-
-    const eventos = [];
-
-    observacoes.forEach(o => eventos.push({ tipo: 'Observação', conteudo: o.conteudo, data: o.data_criacao }));
-    interacoes.forEach(i => eventos.push({ tipo: 'Interação', conteudo: `${i.tipo}: ${i.assunto}`, data: i.data_envio }));
-    agendamentos.forEach(a => eventos.push({ tipo: 'Agendamento', conteudo: `${a.template.assunto} (${a.status})`, data: a.data_agendada }));
-
-    eventos.sort((a, b) => new Date(b.data) - new Date(a.data));
-
-    historicoLista.innerHTML = eventos.map(e => `<li><b>${e.tipo}</b>: ${e.conteudo} <small>(${new Date(e.data).toLocaleString()})</small></li>`).join('');
+  async function fetchExtras(leadId) {
+    const [interRes, agendRes] = await Promise.all([
+      fetch(`/api/leads/${leadId}/interacoes`).then(r => r.json()),
+      fetch(`/api/leads/${leadId}/agendamentos`).then(r => r.json())
+    ]);
+    return { interacoes: interRes, agendamentos: agendRes };
   }
 
   async function renderPipeline(leads = null) {
@@ -219,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!leads) leads = await fetchLeads();
     const stats = await fetchPipelineStats();
 
-    etapas.forEach(etapa => {
+    for (const etapa of etapas) {
       const col = document.createElement('div');
       col.className = 'pipeline-column';
 
@@ -233,18 +158,30 @@ document.addEventListener('DOMContentLoaded', () => {
       col.appendChild(header);
 
       const leadsEtapa = leads.filter(lead => lead.etapa === etapa);
+
       if (leadsEtapa.length === 0) {
         const vazio = document.createElement('div');
         vazio.innerHTML = "<p style='color:gray;font-size:0.9em;'>Nenhum lead</p>";
         col.appendChild(vazio);
       } else {
-        leadsEtapa.forEach(lead => {
+        for (const lead of leadsEtapa) {
           const card = document.createElement('div');
           card.className = 'lead-card';
+
+          const { interacoes, agendamentos } = await fetchExtras(lead.id);
+
+          const interRecentes = interacoes.some(i => isRecent(i.data_envio));
+          const agendHoje = agendamentos.some(a => isToday(a.data_agendada));
+
+          let alertas = '';
+          if (agendHoje) alertas += '<span class="badge">Agendado hoje</span> ';
+          if (interRecentes) alertas += '<span class="badge blue">Interação recente</span>';
+
           card.innerHTML = `
             <h4>${lead.nome}</h4>
             <p>${lead.email}</p>
             <p>${lead.empresa || ''}</p>
+            <p>${alertas}</p>
             <p class="value">Valor: ${formatCurrency(lead.valor_negocio)}</p>
             <label style="font-size: 0.85em;">Alterar etapa:</label>
             <select data-id="${lead.id}" class="etapa-select">
@@ -253,11 +190,11 @@ document.addEventListener('DOMContentLoaded', () => {
             <button class="ver-detalhes" data-id="${lead.id}" data-nome="${lead.nome}" data-email="${lead.email}">Ver detalhes</button>
           `;
           col.appendChild(card);
-        });
+        }
       }
 
       pipelineContainer.appendChild(col);
-    });
+    }
 
     document.querySelectorAll('.etapa-select').forEach(select => {
       select.addEventListener('change', e => {
@@ -304,14 +241,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  closeModalBtn.addEventListener('click', () => {
-    modal.style.display = 'none';
-  });
-
-  window.addEventListener('click', e => {
-    if (e.target === modal) modal.style.display = 'none';
-  });
-
+  closeModalBtn.addEventListener('click', () => modal.style.display = 'none');
+  window.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });
   salvarObsBtn.addEventListener('click', async () => {
     const texto = novaObservacao.value.trim();
     if (!texto) return;
