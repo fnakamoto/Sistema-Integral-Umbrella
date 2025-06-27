@@ -108,35 +108,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const diff = (now - d) / (1000 * 60 * 60 * 24); // em dias
     return diff <= 2;
   }
-  async function fetchLeads() {
-    try {
-      const response = await fetch('/api/leads');
-      const data = await response.json();
-      leadsOriginais = data;
-      return data;
-    } catch (error) {
-      console.error("Erro ao buscar leads:", error);
-      pipelineContainer.innerHTML = '<p style="color:red">Erro ao carregar leads.</p>';
-      return [];
-    }
-  }
 
-  async function fetchPipelineStats() {
-    try {
-      const response = await fetch('/api/pipeline');
-      return await response.json();
-    } catch (error) {
-      console.error("Erro ao buscar estatísticas:", error);
-      return { pipeline: {} };
-    }
+  function diasInatividade(dataMaisRecente) {
+    const agora = new Date();
+    const ultima = new Date(dataMaisRecente);
+    const diff = Math.floor((agora - ultima) / (1000 * 60 * 60 * 24));
+    return diff;
   }
-
   async function fetchExtras(leadId) {
-    const [interRes, agendRes] = await Promise.all([
+    const [interRes, agendRes, obsRes] = await Promise.all([
       fetch(`/api/leads/${leadId}/interacoes`).then(r => r.json()),
-      fetch(`/api/leads/${leadId}/agendamentos`).then(r => r.json())
+      fetch(`/api/leads/${leadId}/agendamentos`).then(r => r.json()),
+      fetch(`/api/leads/${leadId}/observacoes`).then(r => r.json())
     ]);
-    return { interacoes: interRes, agendamentos: agendRes };
+    return { interacoes: interRes, agendamentos: agendRes, observacoes: obsRes };
   }
 
   async function renderPipeline(leads = null) {
@@ -168,14 +153,26 @@ document.addEventListener('DOMContentLoaded', () => {
           const card = document.createElement('div');
           card.className = 'lead-card';
 
-          const { interacoes, agendamentos } = await fetchExtras(lead.id);
+          const { interacoes, agendamentos, observacoes } = await fetchExtras(lead.id);
 
           const interRecentes = interacoes.some(i => isRecent(i.data_envio));
           const agendHoje = agendamentos.some(a => isToday(a.data_agendada));
 
+          let dataMaisRecente = lead.data_criacao;
+          [...interacoes, ...agendamentos, ...observacoes].forEach(ev => {
+            const dataEv = ev.data_envio || ev.data_agendada || ev.data_criacao;
+            if (new Date(dataEv) > new Date(dataMaisRecente)) {
+              dataMaisRecente = dataEv;
+            }
+          });
+
+          const dias = diasInatividade(dataMaisRecente);
+          const inativo = dias > 10;
+
           let alertas = '';
           if (agendHoje) alertas += '<span class="badge">Agendado hoje</span> ';
-          if (interRecentes) alertas += '<span class="badge blue">Interação recente</span>';
+          if (interRecentes) alertas += '<span class="badge blue">Interação recente</span> ';
+          if (inativo) alertas += `<span class="badge red">Inativo há ${dias} dias</span>`;
 
           card.innerHTML = `
             <h4>${lead.nome}</h4>
