@@ -263,7 +263,37 @@ document.addEventListener('DOMContentLoaded', () => {
       const card = document.createElement('div');
       card.className = 'usuario-card';
       card.innerHTML = `<h4>${nome}</h4><p>Leads: ${dados.total}</p><p>Valor Total: ${formatCurrency(dados.valor)}</p><p>Clientes: ${dados.clientes}</p>`;
-      container.appendChild(card);
+      function renderResumoUsuarios(leads) {
+  const container = document.getElementById('resumo-usuarios');
+  if (!container) {
+    console.warn('⚠️ Elemento #resumo-usuarios não encontrado. Ignorando resumo de usuários.');
+    return;
+  }
+
+  const usuarios = {};
+  leads.forEach(lead => {
+    const usuario = lead.usuario || 'Sem usuário';
+    if (!usuarios[usuario]) usuarios[usuario] = { total: 0, valor: 0, clientes: 0 };
+    usuarios[usuario].total++;
+    usuarios[usuario].valor += lead.valor_negocio || 0;
+    if (lead.etapa === 'Cliente') usuarios[usuario].clientes++;
+  });
+
+  container.innerHTML = '';
+  Object.entries(usuarios).forEach(([nome, dados]) => {
+    const card = document.createElement('div');
+    card.className = 'usuario-card';
+    card.innerHTML = `
+      <h4>${nome}</h4>
+      <p>Leads: ${dados.total}</p>
+      <p>Valor Total: ${formatCurrency(dados.valor)}</p>
+      <p>Clientes: ${dados.clientes}</p>
+    `;
+    container.appendChild(card);
+  });
+}
+
+      
     });
   }
 
