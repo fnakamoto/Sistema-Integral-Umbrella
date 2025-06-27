@@ -3,16 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <title>Umbrella Leads Manager</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body { font-family: Arial, sans-serif; background: #f7f9fa; margin: 0; padding: 0; }
     h1 { text-align: center; color: #2c3e50; margin-top: 20px; }
     .painel-indicadores { display: flex; justify-content: center; flex-wrap: wrap; gap: 15px; margin: 20px auto; max-width: 1200px; }
-    .painel-indicadores.sticky { position: sticky; top: 0; background: #ffffffee; z-index: 999; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    .indicador { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); width: 180px; text-align: center; }
-    .indicador h4 { margin: 0 0 10px; font-size: 1em; color: #2c3e50; }
-    .indicador p { margin: 0; font-size: 1.2em; font-weight: bold; color: #007bff; }
-    .grafico-container { max-width: 1200px; margin: 10px auto 30px; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .usuario-card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); width: 180px; text-align: center; }
+    .usuario-card h4 { margin: 0 0 10px; font-size: 1em; color: #2c3e50; }
+    .usuario-card p { margin: 0; font-size: 1em; font-weight: bold; color: #007bff; }
     .form-container { max-width: 800px; margin: 20px auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
     input, button, select, textarea { padding: 10px; margin: 5px 0; width: 100%; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box; }
     button { background-color: #4CAF50; color: white; cursor: pointer; }
@@ -23,90 +20,59 @@
     .badge { display: inline-block; background-color: gold; color: #333; font-size: 0.75em; padding: 2px 6px; margin: 2px; border-radius: 4px; }
     .badge.blue { background-color: #007bff; color: white; }
     .badge.red { background-color: #e74c3c; color: white; }
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; justify-content: center; align-items: center; background: rgba(0,0,0,0.5); z-index: 1000; }
-    .modal-content { background: white; padding: 20px; border-radius: 8px; width: 400px; max-height: 90vh; overflow: auto; position: relative; }
-    .close-button { position: absolute; top: 10px; right: 15px; font-size: 18px; cursor: pointer; }
-    .section-title { margin-top: 20px; font-size: 1.1em; font-weight: bold; }
-    ul { padding-left: 20px; font-size: 0.9em; }
-    label { font-size: 0.85em; margin-top: 5px; display: block; }
   </style>
 </head>
 <body>
   <h1>Umbrella Leads Manager</h1>
 
-  <div style="text-align:center; margin: 10px;">
-    <button id="executarAutomacoesBtn" style="background: #007bff; padding: 10px 20px;">Executar Automações Pendentes</button>
-  </div>
-
-  <div id="painel-indicadores" class="painel-indicadores sticky">
-    <div class="indicador"><h4>Total de Leads</h4><p id="indicadorTotalLeads">0</p></div>
-    <div class="indicador"><h4>Valor Total</h4><p id="indicadorTotalValor">R$ 0,00</p></div>
-    <div class="indicador"><h4>Inativos (10+ dias)</h4><p id="indicadorInativos">0</p></div>
-    <div class="indicador"><h4>Interações Recentes</h4><p id="indicadorRecentes">0</p></div>
-    <div class="indicador"><h4>Agendado Hoje</h4><p id="indicadorHoje">0</p></div>
-  </div>
-
-  <div id="resumo-usuarios" style="max-width:1200px; margin:20px auto;"></div>
+  <!-- ✅ ESSA DIV FOI ADICIONADA -->
+  <div id="resumo-usuarios" class="painel-indicadores"></div>
 
   <div class="form-container">
     <form id="lead-form">
-      <input type="text" id="lead-name" placeholder="Nome" required>
-      <input type="email" id="lead-email" placeholder="E-mail" required>
-      <input type="text" id="lead-company" placeholder="Empresa">
-      <input type="number" id="lead-value" placeholder="Valor do negócio">
+      <input type="text" id="lead-name" placeholder="Nome" required />
+      <input type="email" id="lead-email" placeholder="E-mail" required />
+      <input type="text" id="lead-company" placeholder="Empresa" />
+      <input type="number" id="lead-value" placeholder="Valor do negócio" />
       <button type="submit">Cadastrar Lead</button>
     </form>
   </div>
 
-  <div id="filtros-container" style="max-width:1200px; margin:20px auto; padding:15px; background:#fff; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
-    <h3>Filtrar Leads</h3>
-    <div style="display:flex; flex-wrap:wrap; gap:10px;">
-      <input type="date" id="filtroDataInicio" placeholder="Data inicial">
-      <input type="date" id="filtroDataFim" placeholder="Data final">
-      <select id="filtroEtapa"><option value="">Todas as etapas</option></select>
-      <select id="filtroUsuario"><option value="">Todos os usuários</option></select>
-      <input type="text" id="filtroBusca" placeholder="Buscar por nome ou email">
-      <button id="btnAplicarFiltros">Aplicar Filtros</button>
-      <button id="btnExportarCSV" style="background: #555; color: white;">Exportar CSV</button>
-      <button id="filtroSemana" style="background:#6c757d;color:white;">Semana Atual</button>
-      <button id="filtroMes" style="background:#6c757d;color:white;">Mês Atual</button>
-      <button id="filtroAno" style="background:#6c757d;color:white;">Ano Atual</button>
-    </div>
+  <div id="pipeline-container" class="pipeline">
+    <p>Carregando pipeline...</p>
   </div>
-
-  <div id="pipeline-container" class="pipeline"><p>Carregando pipeline...</p></div>
-
-  <div id="detalhesModal" class="modal">
-    <div class="modal-content">
-      <span class="close-button" id="closeDetalhes">&times;</span>
+  <!-- Modal de Detalhes -->
+  <div id="detalhesModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:1000;">
+    <div class="modal-content" style="background:white; padding:20px; border-radius:8px; width:400px;">
+      <span id="closeDetalhes" style="float:right; cursor:pointer;">&times;</span>
       <h2>Detalhes do Lead</h2>
       <p><strong>Nome:</strong> <span id="detalhesNome"></span></p>
       <p><strong>Email:</strong> <span id="detalhesEmail"></span></p>
 
-      <div class="section-title">Observações</div>
+      <div><strong>Observações</strong></div>
       <ul id="observacoesLista"></ul>
-      <textarea id="novaObservacao" rows="3" placeholder="Adicionar nova observação..."></textarea>
-      <button id="btnSalvarObservacao">Salvar Observação</button>
+      <textarea id="novaObservacao" rows="3" placeholder="Adicionar observação..."></textarea>
+      <button id="btnSalvarObservacao">Salvar</button>
 
-      <div class="section-title">Interações Recentes</div>
+      <div><strong>Interações Recentes</strong></div>
       <ul id="interacoesLista"></ul>
 
-      <div class="section-title">Agendar Automação</div>
+      <div><strong>Agendar Automação</strong></div>
       <label for="templateSelect">Template:</label>
       <select id="templateSelect"></select>
-      <label for="dataAgendada">Data de envio:</label>
-      <input type="date" id="dataAgendada">
+      <label for="dataAgendada">Data:</label>
+      <input type="date" id="dataAgendada" />
       <button id="btnAgendarAutomacao">Agendar</button>
 
-      <div class="section-title">Agendamentos</div>
+      <div><strong>Agendamentos</strong></div>
       <ul id="agendamentosLista"></ul>
 
-      <div class="section-title">Histórico do Lead</div>
+      <div><strong>Histórico</strong></div>
       <ul id="historicoLista"></ul>
     </div>
   </div>
 
-  <!-- JS deve estar ao final do body -->
+  <!-- 🔗 Script principal -->
   <script src="/static/main.js"></script>
 </body>
 </html>
