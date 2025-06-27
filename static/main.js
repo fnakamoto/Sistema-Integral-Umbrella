@@ -167,6 +167,41 @@ document.addEventListener('DOMContentLoaded', () => {
     const ultima = new Date(dataMaisRecente);
     return Math.floor((agora - ultima) / (1000 * 60 * 60 * 24));
   }
+
+  function atualizarIndicadores(leads, stats) {
+    const totalLeads = leads.length;
+    const totalValor = stats.total_valor || 0;
+
+    let inativos = 0;
+    let recentes = 0;
+    let agendHoje = 0;
+
+    leads.forEach(lead => {
+      let dataMaisRecente = lead.data_criacao;
+      const todosEventos = [
+        ...(lead.interacoes || []),
+        ...(lead.agendamentos || []),
+        ...(lead.observacoes || [])
+      ];
+
+      todosEventos.forEach(ev => {
+        const dataEv = ev.data_envio || ev.data_agendada || ev.data_criacao;
+        if (new Date(dataEv) > new Date(dataMaisRecente)) {
+          dataMaisRecente = dataEv;
+        }
+      });
+
+      if (diasInatividade(dataMaisRecente) > 10) inativos++;
+      if ((lead.interacoes || []).some(i => isRecent(i.data_envio))) recentes++;
+      if ((lead.agendamentos || []).some(a => isToday(a.data_agendada))) agendHoje++;
+    });
+
+    document.getElementById('indicadorTotalLeads').textContent = totalLeads;
+    document.getElementById('indicadorTotalValor').textContent = formatCurrency(totalValor);
+    document.getElementById('indicadorInativos').textContent = inativos;
+    document.getElementById('indicadorRecentes').textContent = recentes;
+    document.getElementById('indicadorHoje').textContent = agendHoje;
+  }
   async function fetchLeads() {
     const response = await fetch('/api/leads');
     const data = await response.json();
@@ -192,6 +227,16 @@ document.addEventListener('DOMContentLoaded', () => {
     pipelineContainer.innerHTML = '';
     if (!leads) leads = await fetchLeads();
     const stats = await fetchPipelineStats();
+
+    // prepara leads com extras para indicadores
+    const leadsComExtras = await Promise.all(
+      leads.map(async lead => {
+        const extras = await fetchExtras(lead.id);
+        return { ...lead, ...extras };
+      })
+    );
+
+    atualizarIndicadores(leadsComExtras, stats);
 
     for (const etapa of etapas) {
       const col = document.createElement('div');
