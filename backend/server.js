@@ -1,6 +1,5 @@
 const express = require("express");
 const cors = require("cors");
-const { Pool } = require("pg");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -8,27 +7,20 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// Configurar a conexão com o PostgreSQL
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false,
-  },
-});
+// Importar rotas e middleware de autenticação
+const leadsRouter = require("./routes/leads");
+const { router: authRouter, autenticarToken } = require("./routes/auth");
 
-// Testar a conexão
-pool.connect((err, client, release) => {
-  if (err) {
-    return console.error('Erro ao conectar no banco de dados:', err.stack);
-  }
-  console.log('Conectado ao banco de dados PostgreSQL com sucesso!');
-  release();
-});
-
-// Exemplo de rota
+// Rota pública de teste
 app.get("/", (req, res) => {
   res.send("Servidor backend rodando com sucesso!");
 });
+
+// Rotas públicas (autenticação)
+app.use("/api/auth", authRouter);
+
+// Rotas protegidas (apenas usuários autenticados)
+app.use("/api/leads", autenticarToken, leadsRouter);
 
 app.listen(port, () => {
   console.log(`Servidor rodando na porta ${port}`);
