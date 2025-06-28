@@ -18,26 +18,26 @@ export default function PeticaoForm() {
   const buscarDadosProcesso = async () => {
     if (!numProcesso) return alert('Informe o número do processo');
 
-    try {
-      // Chamada para backend INPI (simulação)
-      const res = await axios.get(`/api/inpi/consulta?processo=${numProcesso}`);
-      setDadosProcesso(res.data);
-    } catch (error) {
-      alert('Erro ao buscar dados do processo');
-    }
+    // Simulação: aqui você pode integrar com a API de consulta INPI para buscar dados reais
+    // Por enquanto usamos dados mockados
+    setDadosProcesso({
+      numero: numProcesso,
+      titular: 'Empresa Exemplo Ltda',
+      status: 'Em andamento',
+      classesNice: ['35', '42'],
+      ultimosDespachos: ['Despacho A', 'Despacho B']
+    });
   };
 
   const gerarPeticao = async () => {
     if (!dadosProcesso) return alert('Busque os dados do processo antes');
     setLoading(true);
-
     try {
-      const res = await axios.post('/api/peticoes/gerar', { tipoPeticao, dadosProcesso });
+      const res = await axios.post('/peticoes/gerar', { tipoPeticao, dadosProcesso });
       setTexto(res.data.texto);
-    } catch {
+    } catch (error) {
       alert('Erro ao gerar petição');
     }
-
     setLoading(false);
   };
 
@@ -50,7 +50,11 @@ export default function PeticaoForm() {
         value={tipoPeticao}
         onChange={e => setTipoPeticao(e.target.value)}
       >
-        {tipos.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+        {tipos.map(t => (
+          <option key={t.value} value={t.value}>
+            {t.label}
+          </option>
+        ))}
       </select>
 
       <input
@@ -89,13 +93,13 @@ export default function PeticaoForm() {
           {loading ? 'Gerando...' : 'Gerar Petição com IA'}
         </button>
         <button
-          onClick={() => alert('Funcionalidade de visualização futura')}
+          onClick={() => alert('Visualização do formato final - implementar')}
           className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
         >
           Visualizar Formato Final
         </button>
         <button
-          onClick={() => alert('Funcionalidade de download PDF futura')}
+          onClick={() => alert('Download PDF - implementar')}
           className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
         >
           Baixar PDF
