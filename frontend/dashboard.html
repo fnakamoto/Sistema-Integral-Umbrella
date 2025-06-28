@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dashboard - Umbrella CRM</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 900px; margin: 20px auto; }
+    canvas { max-width: 100%; margin-bottom: 40px; }
+  </style>
+</head>
+<body>
+
+  <h1>Dashboard de KPIs</h1>
+
+  <canvas id="chartEtapas"></canvas>
+  <canvas id="chartResponsaveis"></canvas>
+  <h3>Leads criados no último mês: <span id="leadsUltimoMes"></span></h3>
+
+<script>
+  const API_URL = 'http://localhost:3000/api';
+  const token = localStorage.getItem('token');
+
+  if (!token) {
+    alert('Faça login para acessar o dashboard');
+    window.location.href = 'index.html';
+  }
+
+  async function fetchKPIs() {
+    const res = await fetch(`${API_URL}/dashboard/kpis`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) {
+      alert('Erro ao carregar KPIs');
+      return null;
+    }
+    return await res.json();
+  }
+
+  function criarGraficoPizza(ctx, labels, data, title) {
+    return new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels,
+        datasets: [{
+          data,
+          backgroundColor: [
+            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
+            '#9966FF', '#FF9F40', '#E7E9ED'
+          ],
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'bottom' },
+          title: { display: true, text: title }
+        }
+      }
+    });
+  }
+
+  async function main() {
+    const kpis = await fetchKPIs();
+    if (!kpis) return;
+
+    // Leads por etapa
+    const ctxEtapas = document.getElementById('chartEtapas').getContext('2d');
+    criarGraficoPizza(
+      ctxEtapas,
+      kpis.leadsPorEtapa.map(e => e.etapa),
+      kpis.leadsPorEtapa.map(e => e.total),
+      'Leads por Etapa'
+    );
+
+    // Leads por responsável
+    const ctxResp = document.getElementById('chartResponsaveis').getContext('2d');
+    criarGraficoPizza(
+      ctxResp,
+      kpis.leadsPorResponsavel.map(r => r.responsavel),
+      kpis.leadsPorResponsavel.map(r => r.total),
+      'Leads por Responsável'
+    );
+
+    // Leads último mês
+    document.getElementById('leadsUltimoMes').textContent = kpis.leadsUltimoMes;
+  }
+
+  main();
+</script>
+
+</body>
+</html>
