@@ -1,17 +1,18 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-require("dotenv").config(); // Carregar variáveis do .env
 
 const app = express();
 const port = process.env.PORT || 3000;
 
+// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Importar rotas
+// Importar rotas e middleware de autenticação
 const leadsRouter = require("./routes/leads");
-const dashboardRouter = require("./routes/dashboard");
 const exportRouter = require("./routes/export");
+const exportPdfRouter = require("./routes/exportPdf");
 const { router: authRouter, autenticarToken } = require("./routes/auth");
 
 // Rota pública de teste
@@ -22,10 +23,10 @@ app.get("/", (req, res) => {
 // Rotas públicas (autenticação)
 app.use("/api/auth", authRouter);
 
-// Rotas protegidas (JWT obrigatório)
+// Rotas protegidas (apenas usuários autenticados)
 app.use("/api/leads", autenticarToken, leadsRouter);
-app.use("/api/dashboard", autenticarToken, dashboardRouter);
 app.use("/api/export", autenticarToken, exportRouter);
+app.use("/api/export", autenticarToken, exportPdfRouter);
 
 app.listen(port, () => {
   console.log(`Servidor rodando na porta ${port}`);
