@@ -1,21 +1,19 @@
-// src/app.js
 const express = require('express');
 const leadsRouter = require('./routes/leads');
+const financeiroRouter = require('./routes/financeiro');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
-// Rotas da gestão de leads
 app.use('/api/leads', leadsRouter);
+app.use('/api/financeiro', financeiroRouter);
 
-// Rota raiz para teste rápido
 app.get('/', (req, res) => {
-  res.send('API Umbrella - Gestão de Leads funcionando');
+  res.send('API Umbrella - Gestão de Leads e Financeiro funcionando');
 });
 
-// Start do servidor
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });
