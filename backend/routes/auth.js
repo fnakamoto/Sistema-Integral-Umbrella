@@ -1,27 +1,21 @@
-const express = require('express');
-const router = express.Router();
-const bcrypt = require('bcrypt');
-const { pool } = require('../db');
+const jwt = require("jsonwebtoken");
+const { isBlacklisted } = require("../utils/tokenBlacklist");
 
-// Cadastro de usuário
-router.post('/register', async (req, res) => {
-  try {
-    const { username, email, senha, role = 'user' } = req.body;
+async function autenticarToken(req, res, next) {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
 
-    // Validar campos aqui (opcional)
+  if (!token) return res.status(401).json({ error: "Token não fornecido" });
 
-    const hashedPassword = await bcrypt.hash(senha, 10);
-
-    const result = await pool.query(
-      'INSERT INTO usuarios (username, email, senha_hash, role) VALUES ($1, $2, $3, $4) RETURNING id, username, email, role',
-      [username, email, hashedPassword, role]
-    );
-
-    res.status(201).json({ usuario: result.rows[0] });
-  } catch (error) {
-    console.error('Erro no registro:', error);
-    res.status(500).json({ error: 'Erro ao registrar usuário' });
+  if (await isBlacklisted(token)) {
+    return res.status(401).json({ error: "Token inválido ou expirado" });
   }
-});
 
-module.exports = router;
+  jwt.verify(token, process.env.JWT_SECRET, (err, usuario) => {
+    if (err) return res.status(403).json({ error: "Token inválido" });
+    req.usuario = usuario;
+    next();
+  });
+}
+
+module.exports = { autenticarToken };
