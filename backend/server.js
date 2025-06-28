@@ -3,6 +3,8 @@ const express = require("express");
 const cors = require("cors");
 const rateLimit = require("express-rate-limit");
 const logger = require("./utils/logger");
+const swaggerUi = require("swagger-ui-express");
+const YAML = require("yamljs");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -17,6 +19,10 @@ const loginLimiter = rateLimit({
   max: 10,
   message: "Muitas tentativas de login, por favor tente novamente depois de 15 minutos."
 });
+
+// Swagger setup
+const swaggerDocument = YAML.load("./swagger.yaml");
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Importar rotas e middleware de autenticação
 const leadsRouter = require("./routes/leads");
