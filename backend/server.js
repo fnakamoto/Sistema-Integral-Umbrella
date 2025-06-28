@@ -9,13 +9,13 @@ const YAML = require("yamljs");
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Middleware global
+// Middlewares globais
 app.use(cors());
 app.use(express.json());
 
 // Rate limiter para login
 const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
+  windowMs: 15 * 60 * 1000, // 15 minutos
   max: 10,
   message: "Muitas tentativas de login, por favor tente novamente depois de 15 minutos.",
 });
@@ -33,6 +33,9 @@ const usuariosRouter = require("./routes/usuarios");
 const profileRouter = require("./routes/profile");
 const uploadRouter = require("./routes/upload");
 const { router: authRouter, autenticarToken } = require("./routes/auth");
+
+// Importar job de exportação
+const exportQueue = require("./jobs/exportJob");
 
 // Rota de status
 app.get("/", (req, res) => {
@@ -59,6 +62,11 @@ app.use((err, req, res, next) => {
   logger.error(`${req.method} ${req.url} - ${err.message}`);
   res.status(500).json({ error: "Erro interno do servidor" });
 });
+
+// Agendamento diário da exportação automática (24 horas)
+setInterval(() => {
+  exportQueue.add({});
+}, 24 * 60 * 60 * 1000);
 
 // Iniciar o servidor
 app.listen(port, () => {
