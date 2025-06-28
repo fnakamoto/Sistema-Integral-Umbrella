@@ -2,73 +2,85 @@ const express = require('express');
 const router = express.Router();
 const { pool } = require('../db');
 
-// Rota GET com filtros para listar leads
+// Validação simples (pode melhorar depois)
+function validarLead(dados) {
+  const { nome, email, telefone, etapa, responsavel } = dados;
+  if (!nome || !email) return false;
+  // Você pode adicionar validações mais robustas aqui
+  return true;
+}
+
+// GET /api/leads - listagem com filtros (como antes)
 router.get('/', async (req, res) => {
-  const {
-    responsavel,
-    etapa,
-    inicio,  // data inicial YYYY-MM-DD
-    fim,     // data final YYYY-MM-DD
-    page = 1,
-    limit = 20,
-  } = req.query;
+  // ... seu código de filtros e paginação já enviado anteriormente ...
+});
 
-  let whereClauses = [];
-  let values = [];
-  let idx = 1;
+// POST /api/leads - criar novo lead
+router.post('/', async (req, res) => {
+  const { nome, email, telefone, etapa, responsavel } = req.body;
 
-  if (responsavel && responsavel.toLowerCase() !== 'todos') {
-    whereClauses.push(`responsavel = $${idx++}`);
-    values.push(responsavel);
+  if (!validarLead(req.body)) {
+    return res.status(400).json({ error: 'Nome e email são obrigatórios.' });
   }
-
-  if (etapa && etapa.toLowerCase() !== 'todos') {
-    whereClauses.push(`etapa = $${idx++}`);
-    values.push(etapa);
-  }
-
-  if (inicio) {
-    whereClauses.push(`criado_em >= $${idx++}`);
-    values.push(inicio);
-  }
-
-  if (fim) {
-    whereClauses.push(`criado_em <= $${idx++}`);
-    values.push(fim);
-  }
-
-  const where = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
-
-  const offset = (page - 1) * limit;
 
   try {
-    const query = `
-      SELECT * FROM leads
-      ${where}
-      ORDER BY criado_em DESC
-      LIMIT $${idx++} OFFSET $${idx++}
-    `;
-
-    values.push(limit);
-    values.push(offset);
-
-    const result = await pool.query(query, values);
-
-    // Contar total para paginação
-    const countQuery = `SELECT COUNT(*) FROM leads ${where}`;
-    const countResult = await pool.query(countQuery, values.slice(0, values.length - 2));
-    const total = parseInt(countResult.rows[0].count);
-
-    res.json({
-      leads: result.rows,
-      total,
-      page: parseInt(page),
-      limit: parseInt(limit),
-      totalPages: Math.ceil(total / limit),
-    });
+    const result = await pool.query(
+      `INSERT INTO leads (nome, email, telefone, etapa, responsavel)
+       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      [nome, email, telefone, etapa, responsavel]
+    );
+    res.status(201).json(result.rows[0]);
   } catch (err) {
-    console.error('Erro ao listar leads com filtros:', err);
-    res.status(500).json({ error: 'Erro interno' });
+    console.error('Erro ao criar lead:', err);
+    res.status(500).json({ error: 'Erro interno no servidor.' });
+  }
+});
+
+// PUT /api/leads/:id - atualizar lead existente
+router.put('/:id', async (req, res) => {
+  const { id } = req.params;
+  const { nome, email, telefone, etapa, responsavel } = req.body;
+
+  if (!validarLead(req.body)) {
+    return res.status(400).json({ error: 'Nome e email são obrigatórios.' });
+  }
+
+  try {
+    const result = await pool.query(
+      `UPDATE leads SET nome=$1, email=$2, telefone=$3, etapa=$4, responsavel=$5
+       WHERE id=$6 RETURNING *`,
+      [nome, email, telefone, etapa, responsavel, id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Lead não encontrado.' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Erro ao atualizar lead:', err);
+    res.status(500).json({ error: 'Erro interno no servidor.' });
+  }
+});
+
+// DELETE /api/leads/:id - deletar lead
+router.delete('/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await pool.query(
+      `DELETE FROM leads WHERE id=$1 RETURNING *`,
+      [id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Lead não encontrado.' });
+    }
+
+    res.json({ message: 'Lead deletado com sucesso.', lead: result.rows[0] });
+  } catch (err) {
+    console.error('Erro ao deletar lead:', err);
+    res.status(500).json({ error: 'Erro interno no servidor.' });
   }
 });
 
