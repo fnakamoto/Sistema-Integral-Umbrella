@@ -1,0 +1,84 @@
+/* styles.css - estilo do pipeline Umbrella Leads Manager */
+
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+  background-color: #f7f9fc;
+  color: #333;
+}
+
+#filtros {
+  margin-bottom: 15px;
+}
+
+#filtro-usuario {
+  padding: 6px;
+  font-size: 14px;
+}
+
+#pipeline {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+}
+
+.coluna {
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  width: 220px;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+}
+
+.coluna h3 {
+  text-align: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #ddd;
+  background-color: #f0f4f8;
+  margin: 0;
+  font-weight: 600;
+}
+
+.cards-container {
+  flex-grow: 1;
+  padding: 8px;
+  overflow-y: auto;
+}
+
+.card {
+  background: #e9f0fb;
+  border-radius: 4px;
+  padding: 8px;
+  margin-bottom: 8px;
+  cursor: grab;
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.1);
+  user-select: none;
+}
+
+.card p {
+  margin: 0 0 6px 0;
+  font-weight: 700;
+}
+
+.card small {
+  color: #555;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.card select {
+  width: 100%;
+  padding: 4px;
+  border-radius: 3px;
+  border: 1px solid #bbb;
+  font-size: 13px;
+}
+
+.cards-container.drag-over {
+  background-color: #d0e7ff;
+  border: 2px dashed #3a7bd5;
+}
+
