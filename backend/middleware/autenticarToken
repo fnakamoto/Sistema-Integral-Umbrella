@@ -1,0 +1,3 @@
+const { autenticarToken } = require('./routes/auth');
+
+app.use('/api/leads', autenticarToken, leadsRouter);
