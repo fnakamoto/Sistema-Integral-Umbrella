@@ -1,11 +1,11 @@
 const nodemailer = require("nodemailer");
+const handlebars = require("handlebars");
 const fs = require("fs");
 const path = require("path");
-const handlebars = require("handlebars");
 
 const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST || "smtp.hostinger.com",
-  port: process.env.EMAIL_PORT || 587,
+  host: process.env.EMAIL_HOST,
+  port: process.env.EMAIL_PORT,
   secure: false,
   auth: {
     user: process.env.EMAIL_USER,
@@ -13,30 +13,20 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-function compilarTemplate(nomeArquivo, dados) {
-  const caminho = path.join(__dirname, "templates", nomeArquivo);
-  const fonte = fs.readFileSync(caminho, "utf8");
-  const template = handlebars.compile(fonte);
-  return template(dados);
+async function enviarEmail(to, subject, templateName, variables) {
+  const templatePath = path.resolve(__dirname, "..", "templates", `${templateName}.hbs`);
+  const source = fs.readFileSync(templatePath, "utf8");
+  const compiledTemplate = handlebars.compile(source);
+  const html = compiledTemplate(variables);
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to,
+    subject,
+    html,
+  };
+
+  await transporter.sendMail(mailOptions);
 }
 
-async function enviarEmail({ to, subject, templateName, templateData }) {
-  try {
-    const html = compilarTemplate(templateName, templateData);
-
-    const info = await transporter.sendMail({
-      from: `"Umbrella CRM" <${process.env.EMAIL_USER}>`,
-      to,
-      subject,
-      html,
-    });
-
-    console.log("📤 E-mail com template enviado:", info.messageId);
-    return true;
-  } catch (err) {
-    console.error("❌ Erro ao enviar e-mail:", err);
-    return false;
-  }
-}
-
-module.exports = { enviarEmail };
+module.exports = enviarEmail;
