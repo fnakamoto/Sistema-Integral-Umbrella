@@ -1,0 +1,7 @@
+const express = require('express');
+const router = express.Router();
+const peticoesController = require('../controllers/peticoesController');
+
+router.post('/gerar', peticoesController.gerarPeticao);
+
+module.exports = router;
