@@ -1,29 +1,14 @@
-// controllers/leadsController.js
 const { v4: uuidv4 } = require('uuid');
-const axios = require('axios');
-
 let leads = [];
 
-const validarDadosParaFechamento = (lead) => {
-  const { nome, cpfCnpj, endereco, email, financeiro } = lead;
-  if (!nome || !cpfCnpj || !endereco || !email) return false;
-  if (!financeiro || !financeiro.valor || !financeiro.vencimento || !financeiro.tipo) return false;
-  return true;
-};
-
 exports.criarLead = (req, res) => {
-  const { nome, email, telefone, etapa, responsavel, cpfCnpj, endereco, financeiro } = req.body;
+  const { nome, email, telefone, etapa, responsavel } = req.body;
   const now = new Date();
   const lead = {
     id: uuidv4(),
-    nome,
-    email,
-    telefone,
+    nome, email, telefone,
     etapa: etapa || 'novo',
     responsavel,
-    cpfCnpj,
-    endereco,
-    financeiro, // { valor, tipo, vencimento }
     criadoEm: now,
     atualizadoEm: now
   };
@@ -47,33 +32,18 @@ exports.atualizarLead = (req, res) => {
   res.json(lead);
 };
 
-exports.alterarEtapa = async (req, res) => {
+exports.alterarEtapa = (req, res) => {
   const { id } = req.params;
   const { etapa } = req.body;
   const lead = leads.find(l => l.id === id);
   if (!lead) return res.status(404).json({ erro: 'Lead não encontrado' });
 
-  if (['negocio_fechado', 'cliente'].includes(etapa.toLowerCase())) {
-    if (!validarDadosParaFechamento(lead)) {
-      return res.status(400).json({ erro: 'Dados cadastrais e financeiros incompletos para fechamento' });
+  // Validação para etapa final 'Cliente' (exemplo simplificado)
+  if (etapa === 'cliente') {
+    if (!lead.nome || !lead.email || !lead.telefone) {
+      return res.status(400).json({ erro: 'Dados cadastrais incompletos para fechar negócio' });
     }
-    try {
-      const response = await axios.post('http://localhost:5000/api/financeiro/cobranca', {
-        cliente: {
-          nome: lead.nome,
-          cpfCnpj: lead.cpfCnpj,
-          endereco: lead.endereco,
-          email: lead.email
-        },
-        valor: lead.financeiro.valor,
-        tipo: lead.financeiro.tipo,
-        vencimento: lead.financeiro.vencimento
-      });
-      console.log('Cobrança gerada:', response.data);
-    } catch (error) {
-      console.error('Erro financeiro:', error.message);
-      return res.status(500).json({ erro: 'Falha na geração da cobrança financeira' });
-    }
+    // Poderia ter validações financeiras aqui (valor, vencimento, tipo cobrança)
   }
 
   lead.etapa = etapa;
