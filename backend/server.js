@@ -13,6 +13,7 @@ app.use(express.json());
 const leadsRouter = require("./routes/leads");
 const exportRouter = require("./routes/export");
 const exportPdfRouter = require("./routes/exportPdf");
+const dbUpdateRouter = require("./routes/dbupdate");
 const { router: authRouter, autenticarToken } = require("./routes/auth");
 
 // Rota pública de teste
@@ -27,6 +28,9 @@ app.use("/api/auth", authRouter);
 app.use("/api/leads", autenticarToken, leadsRouter);
 app.use("/api/export", autenticarToken, exportRouter);
 app.use("/api/export", autenticarToken, exportPdfRouter);
+
+// Rota temporária para atualização do banco (REMOVA DEPOIS DE USAR)
+app.use("/api/dbupdate", dbUpdateRouter);
 
 app.listen(port, () => {
   console.log(`Servidor rodando na porta ${port}`);
