@@ -1,77 +1,74 @@
 const express = require('express');
 const router = express.Router();
+const { pool } = require('../db');
 
-// Para acessar o pool do banco, você pode importar ou passar ele via parâmetro.
-// Aqui vamos assumir que você vai importar do server.js ou criar um módulo para isso:
-const { pool } = require('../db'); // ajuste o caminho conforme sua estrutura
-
-// Listar todos os leads
+// Rota GET com filtros para listar leads
 router.get('/', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT * FROM leads ORDER BY id ASC');
-    res.json(result.rows);
-  } catch (err) {
-    console.error('Erro ao buscar leads:', err);
-    res.status(500).json({ error: 'Erro ao buscar leads' });
+  const {
+    responsavel,
+    etapa,
+    inicio,  // data inicial YYYY-MM-DD
+    fim,     // data final YYYY-MM-DD
+    page = 1,
+    limit = 20,
+  } = req.query;
+
+  let whereClauses = [];
+  let values = [];
+  let idx = 1;
+
+  if (responsavel && responsavel.toLowerCase() !== 'todos') {
+    whereClauses.push(`responsavel = $${idx++}`);
+    values.push(responsavel);
   }
-});
 
-// Criar um novo lead
-router.post('/', async (req, res) => {
-  const { nome, email, telefone, etapa, responsavel } = req.body;
-
-  try {
-    const query = `INSERT INTO leads (nome, email, telefone, etapa, responsavel) 
-                   VALUES ($1, $2, $3, $4, $5) RETURNING *`;
-    const values = [nome, email, telefone, etapa, responsavel];
-    const result = await pool.query(query, values);
-
-    res.status(201).json(result.rows[0]);
-  } catch (err) {
-    console.error('Erro ao criar lead:', err);
-    res.status(500).json({ error: 'Erro ao criar lead' });
+  if (etapa && etapa.toLowerCase() !== 'todos') {
+    whereClauses.push(`etapa = $${idx++}`);
+    values.push(etapa);
   }
-});
 
-// Atualizar lead pelo id
-router.put('/:id', async (req, res) => {
-  const { id } = req.params;
-  const { nome, email, telefone, etapa, responsavel } = req.body;
+  if (inicio) {
+    whereClauses.push(`criado_em >= $${idx++}`);
+    values.push(inicio);
+  }
+
+  if (fim) {
+    whereClauses.push(`criado_em <= $${idx++}`);
+    values.push(fim);
+  }
+
+  const where = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+
+  const offset = (page - 1) * limit;
 
   try {
     const query = `
-      UPDATE leads SET nome=$1, email=$2, telefone=$3, etapa=$4, responsavel=$5
-      WHERE id=$6 RETURNING *`;
-    const values = [nome, email, telefone, etapa, responsavel, id];
+      SELECT * FROM leads
+      ${where}
+      ORDER BY criado_em DESC
+      LIMIT $${idx++} OFFSET $${idx++}
+    `;
+
+    values.push(limit);
+    values.push(offset);
 
     const result = await pool.query(query, values);
 
-    if (result.rowCount === 0) {
-      return res.status(404).json({ error: 'Lead não encontrado' });
-    }
+    // Contar total para paginação
+    const countQuery = `SELECT COUNT(*) FROM leads ${where}`;
+    const countResult = await pool.query(countQuery, values.slice(0, values.length - 2));
+    const total = parseInt(countResult.rows[0].count);
 
-    res.json(result.rows[0]);
+    res.json({
+      leads: result.rows,
+      total,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (err) {
-    console.error('Erro ao atualizar lead:', err);
-    res.status(500).json({ error: 'Erro ao atualizar lead' });
-  }
-});
-
-// Deletar lead pelo id
-router.delete('/:id', async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const result = await pool.query('DELETE FROM leads WHERE id=$1', [id]);
-
-    if (result.rowCount === 0) {
-      return res.status(404).json({ error: 'Lead não encontrado' });
-    }
-
-    res.json({ message: 'Lead deletado com sucesso' });
-  } catch (err) {
-    console.error('Erro ao deletar lead:', err);
-    res.status(500).json({ error: 'Erro ao deletar lead' });
+    console.error('Erro ao listar leads com filtros:', err);
+    res.status(500).json({ error: 'Erro interno' });
   }
 });
 
