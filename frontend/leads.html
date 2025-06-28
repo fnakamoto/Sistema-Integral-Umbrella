@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Filtros de Leads - Umbrella CRM</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: 20px auto; }
+    label, select, input { display: block; margin: 8px 0; }
+    button { padding: 8px 12px; margin: 8px 4px 0 0; }
+    ul { list-style: none; padding-left: 0; }
+    li { border-bottom: 1px solid #ccc; padding: 6px 0; }
+  </style>
+</head>
+<body>
+
+  <h2>Filtrar Leads</h2>
+
+  <form id="filter-form">
+    <label for="responsavel">Responsável:</label>
+    <select id="responsavel" name="responsavel">
+      <option value="todos">Todos</option>
+      <!-- Adicione opções dinâmicas via JS se quiser -->
+    </select>
+
+    <label for="etapa">Etapa:</label>
+    <select id="etapa" name="etapa">
+      <option value="todos">Todas</option>
+      <option value="Contato Inicial">Contato Inicial</option>
+      <option value="Proposta Enviada">Proposta Enviada</option>
+      <option value="Negociação">Negociação</option>
+      <option value="Fechado">Fechado</option>
+    </select>
+
+    <label for="inicio">Data Início:</label>
+    <input type="date" id="inicio" name="inicio" />
+
+    <label for="fim">Data Fim:</label>
+    <input type="date" id="fim" name="fim" />
+
+    <button type="submit">Buscar</button>
+  </form>
+
+  <h3>Leads Encontrados:</h3>
+  <ul id="leads-list"></ul>
+
+  <div id="pagination">
+    <button id="prev-page">Anterior</button>
+    <span id="page-info"></span>
+    <button id="next-page">Próximo</button>
+  </div>
+
+<script>
+  const API_URL = 'http://localhost:3000/api';
+  const token = localStorage.getItem('token');
+
+  if (!token) {
+    alert('Faça login para acessar essa página.');
+    window.location.href = 'index.html'; // Ou onde tiver o login
+  }
+
+  let currentPage = 1;
+  const limit = 5; // Itens por página
+
+  const leadsList = document.getElementById('leads-list');
+  const pageInfo = document.getElementById('page-info');
+  const prevPageBtn = document.getElementById('prev-page');
+  const nextPageBtn = document.getElementById('next-page');
+  const filterForm = document.getElementById('filter-form');
+
+  async function fetchLeads(page = 1) {
+    const formData = new FormData(filterForm);
+    const params = new URLSearchParams();
+
+    params.append('page', page);
+    params.append('limit', limit);
+
+    for (const [key, value] of formData.entries()) {
+      if (value && value !== 'todos') {
+        params.append(key, value);
+      }
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/leads?${params.toString()}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Erro ao buscar leads');
+
+      renderLeads(data.leads);
+      updatePagination(data.page, data.totalPages);
+    } catch (err) {
+      alert(err.message);
+    }
+  }
+
+  function renderLeads(leads) {
+    leadsList.innerHTML = '';
+    if (leads.length === 0) {
+      leadsList.innerHTML = '<li>Nenhum lead encontrado.</li>';
+      return;
+    }
+    leads.forEach(lead => {
+      const li = document.createElement('li');
+      li.textContent = `${lead.nome} — ${lead.email} — ${lead.telefone} — ${lead.etapa} — ${lead.responsavel}`;
+      leadsList.appendChild(li);
+    });
+  }
+
+  function updatePagination(page, totalPages) {
+    currentPage = page;
+    pageInfo.textContent = `Página ${page} de ${totalPages}`;
+    prevPageBtn.disabled = page <= 1;
+    nextPageBtn.disabled = page >= totalPages;
+  }
+
+  prevPageBtn.addEventListener('click', () => {
+    if (currentPage > 1) fetchLeads(currentPage - 1);
+  });
+
+  nextPageBtn.addEventListener('click', () => {
+    fetchLeads(currentPage + 1);
+  });
+
+  filterForm.addEventListener('submit', e => {
+    e.preventDefault();
+    fetchLeads(1);
+  });
+
+  // Carregar na primeira vez
+  fetchLeads();
+
+</script>
+
+</body>
+</html>
