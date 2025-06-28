@@ -1,21 +1,28 @@
+const express = require("express");
+const router = express.Router();
 const jwt = require("jsonwebtoken");
-const { isBlacklisted } = require("../utils/tokenBlacklist");
+const { addToken } = require("../utils/tokenBlacklist");
+const { autenticarToken } = require("./authMiddleware"); // ou onde estiver seu middleware
 
-async function autenticarToken(req, res, next) {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
+router.post("/logout", autenticarToken, async (req, res) => {
+  try {
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
+    if (!token) return res.status(400).json({ error: "Token não encontrado" });
 
-  if (!token) return res.status(401).json({ error: "Token não fornecido" });
+    // Decodificar token para pegar o exp (expiração)
+    const decoded = jwt.decode(token);
+    if (!decoded || !decoded.exp) {
+      return res.status(400).json({ error: "Token inválido" });
+    }
 
-  if (await isBlacklisted(token)) {
-    return res.status(401).json({ error: "Token inválido ou expirado" });
+    await addToken(token, decoded.exp);
+
+    res.json({ message: "Logout realizado com sucesso" });
+  } catch (err) {
+    console.error("Erro no logout:", err);
+    res.status(500).json({ error: "Erro ao processar logout" });
   }
+});
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, usuario) => {
-    if (err) return res.status(403).json({ error: "Token inválido" });
-    req.usuario = usuario;
-    next();
-  });
-}
-
-module.exports = { autenticarToken };
+module.exports = router;
