@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const logger = require("./utils/logger");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -32,6 +33,12 @@ app.use("/api/export", autenticarToken, exportPdfRouter);
 // Rota temporária para atualização do banco (REMOVA DEPOIS DE USAR)
 app.use("/api/dbupdate", dbUpdateRouter);
 
+// Middleware para tratamento de erros com log
+app.use((err, req, res, next) => {
+  logger.error(`${req.method} ${req.url} - ${err.message}`);
+  res.status(500).json({ error: "Erro interno do servidor" });
+});
+
 app.listen(port, () => {
-  console.log(`Servidor rodando na porta ${port}`);
+  logger.info(`Servidor rodando na porta ${port}`);
 });
