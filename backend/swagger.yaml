@@ -1,0 +1,34 @@
+openapi: 3.0.0
+info:
+  title: API Umbrella
+  version: 1.0.0
+paths:
+  /api/auth/login:
+    post:
+      summary: Login do usuário
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                senha:
+                  type: string
+      responses:
+        '200':
+          description: Login realizado com sucesso
+  /api/leads:
+    get:
+      summary: Listar leads
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+          description: Número da página
+      responses:
+        '200':
+          description: Lista de leads
