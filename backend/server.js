@@ -9,7 +9,7 @@ const YAML = require("yamljs");
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Middlewares globais
+// Middleware global
 app.use(cors());
 app.use(express.json());
 
@@ -20,17 +20,18 @@ const loginLimiter = rateLimit({
   message: "Muitas tentativas de login, por favor tente novamente depois de 15 minutos.",
 });
 
-// Swagger docs
+// Swagger UI
 const swaggerDocument = YAML.load("./swagger.yaml");
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-// Rotas e middlewares
+// Importar rotas
 const leadsRouter = require("./routes/leads");
 const exportRouter = require("./routes/export");
 const exportPdfRouter = require("./routes/exportPdf");
 const dbUpdateRouter = require("./routes/dbupdate");
 const usuariosRouter = require("./routes/usuarios");
 const profileRouter = require("./routes/profile");
+const uploadRouter = require("./routes/upload");
 const { router: authRouter, autenticarToken } = require("./routes/auth");
 
 // Rota de status
@@ -48,17 +49,18 @@ app.use("/api/export", autenticarToken, exportRouter);
 app.use("/api/export", autenticarToken, exportPdfRouter);
 app.use("/api/usuarios", autenticarToken, usuariosRouter);
 app.use("/api/profile", autenticarToken, profileRouter);
+app.use("/api/upload", autenticarToken, uploadRouter);
 
-// Rota temporária de atualização do banco
+// Rota temporária para atualização do banco
 app.use("/api/dbupdate", dbUpdateRouter);
 
-// Middleware de erro com logger
+// Middleware de erro com log
 app.use((err, req, res, next) => {
   logger.error(`${req.method} ${req.url} - ${err.message}`);
   res.status(500).json({ error: "Erro interno do servidor" });
 });
 
-// Inicializa o servidor
+// Iniciar o servidor
 app.listen(port, () => {
   logger.info(`Servidor rodando na porta ${port}`);
 });
